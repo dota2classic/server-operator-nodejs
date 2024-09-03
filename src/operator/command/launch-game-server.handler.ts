@@ -85,6 +85,34 @@ export class LaunchGameServerCommandHandler
     }
   }
 
+  private async runDedicatedWindows(rootPath: string, args: string){
+    const batCmd = `
+    pushd ${rootPath}
+    start ${this.getSrcdsExecutable()} ${args}
+    exit 0
+  `;
+
+  const filename = path.join(rootPath, `${Math.round(Math.random() * 100000)}.bat`);
+  await fs.promises.writeFile(filename, batCmd);
+
+  
+  const process = spawn(filename, {
+    cwd: rootPath,
+    shell: true,
+    detached: true,
+    stdio: 'ignore'
+  });
+
+    await new Promise(resolve => process.on('exit', resolve));
+    
+    await fs.promises.unlink(filename);
+  }
+
+  private async runDedicatedLinux(rootPath: string, args: string){
+
+  }
+
+
   private async runDedicatedServer(server: ServerConfiguration, info: GSMatchInfo, matchId: number){
     
     
@@ -101,27 +129,14 @@ export class LaunchGameServerCommandHandler
 
     const args = `-usercon -console -maxplayers 14 -game dota +rcon_password ${RCON_PASSWORD()} +ip 0.0.0.0 -port ${server.port} +map ${map} +dota_force_gamemode ${gameMode} -match ${clConfigBase64}`;
 
-    const batCmd = `
-      pushd ${server.path}
-      start ${this.getSrcdsExecutable()} ${args}
-      exit 0
-    `;
-
-    const filename = path.join(server.path, `${Math.round(Math.random() * 100000)}.bat`);
-    fs.writeFileSync(filename, batCmd);
-
+    if(process.platform === 'win32'){
+      await this.runDedicatedWindows(server.path, args)
+    } else if(process.platform === 'linux'){
+      await this.runDedicatedLinux(server.path, args);
+    }else {
+      throw new Error("Unsupported platform for dedicated server")
+    }
     
-    const process = spawn(filename, {
-      cwd: server.path,
-      shell: true,
-      detached: true,
-      stdio: 'ignore'
-    });
-
-
-    await new Promise(resolve => process.on('exit', resolve));
-    
-    fs.unlinkSync(filename);
   
     return new LaunchGameServerResponse(true);
   }

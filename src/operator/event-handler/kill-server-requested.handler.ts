@@ -1,8 +1,5 @@
 import { EventBus, EventsHandler, IEventHandler } from '@nestjs/cqrs';
 import { ServerActualizationRequestedEvent } from 'src/gateway/events/gs/server-actualization-requested.event';
-import { Rcon } from "rcon-client"
-import { RCON_PASSWORD } from 'src/env';
-import { executeRcon, executeRconUrl } from 'src/util/rcon';
 import { KillServerRequestedEvent } from 'src/gateway/events/gs/kill-server-requested.event';
 const { killPortProcess } = require('kill-port-process');
 
