@@ -25,6 +25,13 @@
     "@nestjs/cqrs": "^10.2.7",
     "@nestjs/microservices": "^10.4.1",
     "@nestjs/platform-express": "^10.4.1",
+    "@nestjs/schedule": "^4.1.0",
+    "cache-manager-redis-yet": "^5.1.4",
+    "dotenv": "^16.4.5",
+    "ioredis": "^5.4.1",
+    "kill-port-process": "^3.2.1",
+    "ps-node": "^0.1.6",
+    "rcon-client": "^4.2.4",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
   },
