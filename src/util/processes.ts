@@ -9,9 +9,10 @@ export interface SrcdsProcess {
 
 export async function getRunningSrcds(): Promise<SrcdsProcess[]> {
 
+    const regex = process.platform === 'win32' ? '.*srcds\\.exe.*' : '.*srcds_linux.*';
     return new Promise((resolve, reject) => {
         ps.lookup({
-            command: ".*srcds.*"
+            command: regex
         }, (err, list) => {
             if(err){
                 reject([]);
@@ -25,17 +26,31 @@ export async function getRunningSrcds(): Promise<SrcdsProcess[]> {
                 const port = parseInt(inf.arguments[indexOfPort + 1]);
                 const pid = parseInt(inf.pid);
 
-                const matchInfo = JSON.parse(atob(inf.arguments[indexOfMatchdata + 1]));
-
-                return {
-                    pid,
-                    port,
-                    match: matchInfo
+                if(inf.arguments[0] === '<defunct>'){
+                    // we need to kill this process
+                    process.kill(pid);
+                    console.warn('Killed orphaned srcds server on pid ' + pid);
+                    return null;
                 }
-            });
+
+                try {
+                    const matchInfo = JSON.parse(atob(inf.arguments[indexOfMatchdata + 1]));
+                    return {
+                        pid,
+                        port,
+                        match: matchInfo
+                    }
+                }catch(e){
+                    console.log(inf)
+                    console.log("ERROR HERE!", e)
+                    return null;
+                }
+
+            }).filter(Boolean);
 
             
 
+            console.log(list);
             resolve(res);
         })
     })

@@ -110,6 +110,27 @@ export class LaunchGameServerCommandHandler
 
   private async runDedicatedLinux(rootPath: string, args: string){
 
+    const batCmd = `./${this.getSrcdsExecutable()} ${args}`;
+
+    // const filename = path.join(rootPath, `${Math.round(Math.random() * 100000)}.sh`);
+    const filename = path.join(rootPath, `tmprun.sh`);
+    await fs.promises.writeFile(filename, batCmd);
+    await fs.promises.chmod(filename, "755");
+
+    console.log(filename);
+    console.log(batCmd);
+
+    const process = spawn(filename, {
+      cwd: rootPath,
+      shell: true,
+      detached: true,
+      stdio: 'inherit'
+    });
+    // process.unref();
+
+    await new Promise(resolve => process.on('exit', resolve));
+
+    // await fs.promises.unlink(filename);
   }
 
 
