@@ -59,6 +59,7 @@ export interface SRCDSPlayer {
     last_hits: number
     denies: number
     tower_kills: number
+    networth: number;
     roshan_kills: number
     items: string[]
 }
