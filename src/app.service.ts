@@ -7,6 +7,7 @@ import * as path from "path";
 import { Dota2Version } from './gateway/shared-types/dota2version';
 import { ClientProxy } from '@nestjs/microservices';
 import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
+import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 
 
 export interface ServerConfiguration {
@@ -47,7 +48,8 @@ export class AppService {
 
     const publicEvents: any[] = [
       GameServerDiscoveredEvent,
-      ServerStatusEvent
+      ServerStatusEvent,
+      LiveMatchUpdateEvent
     ];
 
     this.ebus

@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { MessagePattern } from '@nestjs/microservices';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
@@ -7,6 +7,9 @@ import { LaunchGameServerResponse } from './gateway/commands/LaunchGameServer/la
 import { construct } from './gateway/util/construct';
 import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
 import { KillServerRequestedEvent } from './gateway/events/gs/kill-server-requested.event';
+import { LiveMatchDto } from './operator/dto';
+import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
+import { itemIdByName } from './gateway/constants/items';
 
 @Controller()
 export class AppController {
@@ -31,5 +34,56 @@ export class AppController {
     query: KillServerRequestedEvent,
   ) {
     return this.ebus.publish(construct(KillServerRequestedEvent, query));
+  }
+
+  @Post('/live_match')
+  findAll(@Body() it: LiveMatchDto): string {
+    // Propagate 
+
+    
+    const mapped: LiveMatchUpdateEvent = {
+        matchId: it.match_id,
+        server: it.server,
+        matchmaking_mode: it.matchmaking_mode,
+        game_mode: it.game_mode,
+        duration: it.duration,
+        timestamp: it.timestamp,
+        heroes: it.heroes.map(h => {
+          return {
+            hero: h.hero,
+            team: h.team,
+            steam_id: h.steam_id.toString(),
+            level: h.level,
+  
+            bot: h.bot,
+            pos_x: h.pos_x,
+            pos_y: h.pos_y,
+            angle: h.angle,
+  
+            mana: h.mana,
+            max_mana: h.max_mana,
+  
+            health: h.health,
+            max_health: h.max_health,
+  
+            item0: itemIdByName(h.items[0].replace('item_', '')),
+            item1: itemIdByName(h.items[1].replace('item_', '')),
+            item2: itemIdByName(h.items[2].replace('item_', '')),
+            item3: itemIdByName(h.items[3].replace('item_', '')),
+            item4: itemIdByName(h.items[4].replace('item_', '')),
+            item5: itemIdByName(h.items[5].replace('item_', '')),
+  
+            kills: h.kills,
+            deaths: h.deaths,
+            assists: h.assists,
+            respawn_time: h.respawn_time
+          }
+        })
+    }
+
+    this.ebus.publish(construct(LiveMatchUpdateEvent, mapped));
+    
+
+    return 'hey'
   }
 }

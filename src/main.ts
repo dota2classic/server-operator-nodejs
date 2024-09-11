@@ -7,7 +7,9 @@ import { Logger } from '@nestjs/common';
 import { inspect } from 'util';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice(AppModule, {
+  const app = await NestFactory.create(AppModule);
+
+  app.connectMicroservice({
     transport: Transport.REDIS,
     options: {
       url: REDIS_URL(),
@@ -16,7 +18,7 @@ async function bootstrap() {
       retryDelay: 5000,
       password: REDIS_PASSWORD(),
     },
-  });
+  })
 
 
   const ebus = app.get(EventBus);
@@ -44,7 +46,9 @@ async function bootstrap() {
     qlogger.log(e.constructor.name);
   })
 
-  await app.listen();
+  await app.listen(7777);
+  await app.startAllMicroservices();
+  console.log("Staretd")
 
 
 }
