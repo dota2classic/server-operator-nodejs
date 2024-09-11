@@ -152,7 +152,7 @@ export class LaunchGameServerCommandHandler
     console.log(clConfigBase64);
 
 
-    const args = `-usercon -console -maxplayers 14 -game dota +rcon_password ${RCON_PASSWORD()} +ip 0.0.0.0 -port ${server.port} +map ${map} +dota_force_gamemode ${gameMode} -match ${clConfigBase64}`;
+    const args = `-usercon -console -maxplayers 14 -game dota +rcon_password ${RCON_PASSWORD()} +ip 0.0.0.0 -port ${server.port} +map ${map} +tv_enable 1 +dota_force_gamemode ${gameMode} -match ${clConfigBase64}`;
 
     if(process.platform === 'win32'){
       await this.runDedicatedWindows(server.path, args)

@@ -7,9 +7,10 @@ import { LaunchGameServerResponse } from './gateway/commands/LaunchGameServer/la
 import { construct } from './gateway/util/construct';
 import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
 import { KillServerRequestedEvent } from './gateway/events/gs/kill-server-requested.event';
-import { LiveMatchDto } from './operator/dto';
+import { LiveMatchDto, MatchFinishedOnSRCDS } from './operator/dto';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 import { itemIdByName } from './gateway/constants/items';
+import { GameResultsEvent } from './gateway/events/gs/game-results.event';
 
 @Controller()
 export class AppController {
@@ -85,5 +86,47 @@ export class AppController {
     
 
     return 'hey'
+  }
+
+
+  @Post('/match_results')
+  matchResults(@Body() d: MatchFinishedOnSRCDS){
+
+    const g = new GameResultsEvent(
+      d.matchId,
+      d.winner,
+      d.duration,
+      d.gameMode,
+      d.type,
+      d.timestamp,
+      d.server,
+      d.players.map(p => ({
+        steam_id: p.steam_id.toString(),
+        team: p.team,
+        kills: p.kills,
+        deaths: p.deaths,
+        assists: p.assists,
+        level: p.level,
+
+        item0: itemIdByName(p.items[0]),
+        item1: itemIdByName(p.items[1]),
+        item2: itemIdByName(p.items[2]),
+        item3: itemIdByName(p.items[3]),
+        item4: itemIdByName(p.items[4]),
+        item5: itemIdByName(p.items[5]),
+
+        gpm: p.gpm,
+        xpm: p.gpm,
+        last_hits: p.last_hits,
+        denies: p.denies,
+        abandoned: p.abandon,
+
+        hero: p.hero
+      }))
+    );
+    
+    this.ebus.publish(g)
+
+    return 200;
   }
 }

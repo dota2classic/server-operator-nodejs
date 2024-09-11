@@ -50,7 +50,7 @@ export async function getRunningSrcds(): Promise<SrcdsProcess[]> {
 
             
 
-            console.log(list);
+            // console.log(list);
             resolve(res);
         })
     })

@@ -16,7 +16,6 @@ export class GameServerNotStartedHandler
   }
 
   async handle(event: ServerActualizationRequestedEvent) {
-    console.log("Actualization requested");
     const processes = await getRunningSrcds();
     const process = processes.find(proc => proc.match.url == event.url);
 

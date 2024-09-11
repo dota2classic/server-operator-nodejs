@@ -1,4 +1,5 @@
 import { Dota_GameMode } from "src/gateway/shared-types/dota-game-mode";
+import { DotaTeam } from "src/gateway/shared-types/dota-team";
 import { MatchmakingMode } from "src/gateway/shared-types/matchmaking-mode";
 
 export interface LiveMatchDto {
@@ -30,4 +31,34 @@ export interface HeroData {
     deaths: number
     assists: number
     team: number
+}
+
+
+export interface MatchFinishedOnSRCDS {
+    matchId: number
+    winner: DotaTeam
+    duration: number
+    type: MatchmakingMode
+    gameMode: Dota_GameMode
+    timestamp: number
+    server: string
+    players: SRCDSPlayer[]
+}
+
+export interface SRCDSPlayer {
+    hero: string
+    steam_id: number
+    team: number
+    level: number
+    kills: number
+    deaths: number
+    assists: number
+    abandon: boolean;
+    gpm: number
+    xpm: number
+    last_hits: number
+    denies: number
+    tower_kills: number
+    roshan_kills: number
+    items: string[]
 }
