@@ -120,6 +120,7 @@ export class AppController {
         last_hits: p.last_hits,
         denies: p.denies,
         abandoned: p.abandon,
+        networth: p.networth,
 
         hero: p.hero
       }))
