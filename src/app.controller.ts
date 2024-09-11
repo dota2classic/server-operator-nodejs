@@ -91,7 +91,7 @@ export class AppController {
 
   @Post('/match_results')
   matchResults(@Body() d: MatchFinishedOnSRCDS){
-
+    console.log(JSON.stringify(d))
     const g = new GameResultsEvent(
       d.matchId,
       d.winner,
