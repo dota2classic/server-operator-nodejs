@@ -2,7 +2,7 @@
 /dist
 /node_modules
 /build
-
+runscreen.sh
 # Logs
 logs
 *.log
