@@ -156,7 +156,7 @@ export class LaunchGameServerCommandHandler
             url: server.url
         }
 
-        const clConfigBase64 = btoa(JSON.stringify(clConfig));
+        const clConfigBase64 = Buffer.from(JSON.stringify(clConfig)).toString("base64");
 
         console.log(JSON.stringify(clConfig));
         console.log(clConfigBase64);
