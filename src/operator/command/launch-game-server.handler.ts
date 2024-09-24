@@ -161,9 +161,23 @@ export class LaunchGameServerCommandHandler
         console.log(JSON.stringify(clConfig));
         console.log(clConfigBase64);
 
+        const argArray = [
+            '-usercon', // Enable RCON
+            '-console', // Enable console
+            '-maxplayers', '14', // Set max players
+            '-game', 'dota', // Game
+            '+rcon_password', `${RCON_PASSWORD()}`, // RCON password
+            '+ip', '0.0.0.0', // Host
+            '-port', `${server.port}`,
+            '+map', `${map}`, // map
+            '+tv_enable', '1', // enable tv
+            '+dota_force_gamemode', `${gameMode}`, // What game mode to run
+            '-match', `${clConfigBase64}`, // Base64 encoded match data
+            '+con_logfile', `logs/match_${matchId}.log`
+        ]
 
-        const args = `-usercon -console -maxplayers 14 -game dota +rcon_password ${RCON_PASSWORD()} +ip 0.0.0.0 -port ${server.port} +map ${map} +tv_enable 1 +dota_force_gamemode ${gameMode} -match ${clConfigBase64}`;
-
+        const args = argArray.join(' ');
+        
         if (process.platform === 'win32') {
             await this.runDedicatedWindows(server.path, args)
         } else if (process.platform === 'linux') {

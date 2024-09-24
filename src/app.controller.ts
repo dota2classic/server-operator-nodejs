@@ -11,6 +11,7 @@ import { LiveMatchDto, MatchFinishedOnSRCDS } from './operator/dto';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 import { itemIdByName } from './gateway/constants/items';
 import { GameResultsEvent } from './gateway/events/gs/game-results.event';
+import { fillAdditionalData } from './util/parseLogFile';
 
 @Controller()
 export class AppController {
@@ -90,7 +91,7 @@ export class AppController {
 
 
   @Post('/match_results')
-  matchResults(@Body() d: MatchFinishedOnSRCDS){
+  async matchResults(@Body() d: MatchFinishedOnSRCDS){
     console.log(JSON.stringify(d))
     const g = new GameResultsEvent(
       d.matchId,
@@ -122,9 +123,21 @@ export class AppController {
         abandoned: p.abandon,
         networth: p.networth,
 
+        heroDamage: 0,
+        heroHealing: 0,
+        towerDamage: 0,
+
         hero: p.hero
       }))
     );
+
+
+    try{
+      await fillAdditionalData(g, this.appService.config[g.server]);
+    }catch(e){
+      console.error("Failed to fill additional data from log file, reason:");
+      console.error(e);
+    }
     
     this.ebus.publish(g)
 
