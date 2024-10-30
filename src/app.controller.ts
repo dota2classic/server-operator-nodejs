@@ -132,6 +132,9 @@ export class AppController {
     );
 
 
+    // Make sure that log file is fully saved.
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
     try{
       await fillAdditionalData(g, this.appService.config[g.server]);
     }catch(e){
