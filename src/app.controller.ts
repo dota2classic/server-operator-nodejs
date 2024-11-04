@@ -15,6 +15,8 @@ import { fillAdditionalData } from './util/parseLogFile';
 import { DotaConnectionState } from './gateway/shared-types/dota-player-connection-state';
 import { PlayerId } from './gateway/shared-types/player-id';
 import { MatchFailedEvent } from './gateway/events/match-failed.event';
+import { GameServerStoppedEvent } from './gateway/events/game-server-stopped.event';
+import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
 
 @Controller()
 export class AppController {
@@ -98,6 +100,7 @@ export class AppController {
     if(failedPlayers.length > 0){
       this.ebus.publish(new MatchFailedEvent(d.match_id, d.server, failedPlayers.map(plr => new PlayerId(plr.steam_id.toString()))))
     }
+    this.ebus.publish(new ServerStatusEvent(d.server, false, undefined, undefined));
   }
 
   @Post('/match_results')
