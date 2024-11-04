@@ -142,6 +142,11 @@ export class AppController {
     );
 
 
+    console.log("Before waiting 5 seconds")
+    // Make sure that log file is fully saved.
+    await new Promise((resolve) => setTimeout(resolve, 5000))
+    console.log("After waiting 5 seconds")
+
     try{
       await fillAdditionalData(g, this.appService.config[g.server]);
     }catch(e){
