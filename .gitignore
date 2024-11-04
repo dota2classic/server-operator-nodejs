@@ -6,6 +6,7 @@ runscreen.sh
 # Logs
 logs
 *.log
+logs.sh
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
