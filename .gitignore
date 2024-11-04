@@ -11,7 +11,8 @@ pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
-
+logfile.txt
+serverlist.json
 # OS
 .DS_Store
 
