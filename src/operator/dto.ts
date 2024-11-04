@@ -1,4 +1,5 @@
 import { Dota_GameMode } from "src/gateway/shared-types/dota-game-mode";
+import { DotaConnectionState } from "src/gateway/shared-types/dota-player-connection-state";
 import { DotaTeam } from "src/gateway/shared-types/dota-team";
 import { MatchmakingMode } from "src/gateway/shared-types/matchmaking-mode";
 
@@ -33,6 +34,17 @@ export interface HeroData {
     team: number
 }
 
+export interface FailedPlayerInfo {
+    steam_id: number;
+    party_id?: string;
+    connection: DotaConnectionState;
+}
+
+export interface MatchFailedOnSRCDS {
+    players: FailedPlayerInfo[];
+    match_id: number;
+    server: string;
+}
 
 export interface MatchFinishedOnSRCDS {
     matchId: number
@@ -53,7 +65,7 @@ export interface SRCDSPlayer {
     kills: number
     deaths: number
     assists: number
-    abandon: boolean;
+    connection: DotaConnectionState;
     gpm: number
     xpm: number
     last_hits: number

@@ -7,11 +7,14 @@ import { LaunchGameServerResponse } from './gateway/commands/LaunchGameServer/la
 import { construct } from './gateway/util/construct';
 import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
 import { KillServerRequestedEvent } from './gateway/events/gs/kill-server-requested.event';
-import { LiveMatchDto, MatchFinishedOnSRCDS } from './operator/dto';
+import { FailedPlayerInfo, LiveMatchDto, MatchFailedOnSRCDS, MatchFinishedOnSRCDS } from './operator/dto';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 import { itemIdByName } from './gateway/constants/items';
 import { GameResultsEvent } from './gateway/events/gs/game-results.event';
 import { fillAdditionalData } from './util/parseLogFile';
+import { DotaConnectionState } from './gateway/shared-types/dota-player-connection-state';
+import { PlayerId } from './gateway/shared-types/player-id';
+import { MatchFailedEvent } from './gateway/events/match-failed.event';
 
 @Controller()
 export class AppController {
@@ -89,6 +92,13 @@ export class AppController {
     return 'hey'
   }
 
+  @Post('/failed_match')
+  async failedMatch(@Body() d: MatchFailedOnSRCDS) {
+    const failedPlayers = d.players.filter(t => t.connection === DotaConnectionState.DOTA_CONNECTION_STATE_FAILED)
+    if(failedPlayers.length > 0){
+      this.ebus.publish(new MatchFailedEvent(d.match_id, d.server, failedPlayers.map(plr => new PlayerId(plr.steam_id.toString()))))
+    }
+  }
 
   @Post('/match_results')
   async matchResults(@Body() d: MatchFinishedOnSRCDS){
@@ -120,7 +130,7 @@ export class AppController {
         xpm: p.gpm,
         last_hits: p.last_hits,
         denies: p.denies,
-        abandoned: p.abandon,
+        abandoned: p.connection === DotaConnectionState.DOTA_CONNECTION_STATE_ABANDONED,
         networth: p.networth,
 
         heroDamage: 0,

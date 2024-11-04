@@ -185,8 +185,9 @@ export class LaunchGameServerCommandHandler
         } else {
             throw new Error("Unsupported platform for dedicated server")
         }
+        console.log("BEFORE RETURNING TRUE!")
 
-
+        
         return new LaunchGameServerResponse(true);
     }
 }

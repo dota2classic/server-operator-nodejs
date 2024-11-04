@@ -5,6 +5,8 @@ import { REDIS_HOST, REDIS_PASSWORD, REDIS_URL } from './env';
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 import { inspect } from 'util';
+import { GameServerDiscoveredEvent } from './gateway/events/game-server-discovered.event';
+import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,10 +32,11 @@ async function bootstrap() {
   const qlogger = new Logger('QueryLogger');
 
   ebus.subscribe(e => {
+    if(e.constructor.name === GameServerDiscoveredEvent.name) return;
+    if(e.constructor.name === ServerActualizationRequestedEvent.name) return;
 
     elogger.log(
-      // `${inspect(e)}`,
-      e.constructor.name,
+      `${inspect(e)}`
     );
   })
 

@@ -1,7 +1,7 @@
 {
-    "31.129.51.235:27015": {
-        "path": "/root/Dota2_Linux_Server_Slim",
-        "url": "31.129.51.235:27015",
+    "192.168.31.200:27015": {
+        "path": "E:/torrent/d2server/Dota6.84",
+        "url": "192.168.31.200:27015",
         "port": 27015,
         "version": "Dota_684",
         "down_for": 0,
