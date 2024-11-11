@@ -46,6 +46,14 @@ export interface MatchFailedOnSRCDS {
     server: string;
 }
 
+export interface PlayerAbandonOnSRCDS {
+    match_id: number;
+    steam_id: number;
+    mode: MatchmakingMode;
+    server: string;
+}
+
+
 export interface MatchFinishedOnSRCDS {
     matchId: number
     winner: DotaTeam

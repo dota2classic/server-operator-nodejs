@@ -10,6 +10,7 @@ import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 import { GameResultsEvent } from './gateway/events/gs/game-results.event';
 import { MatchFailedEvent } from './gateway/events/match-failed.event';
+import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.event';
 
 
 export interface ServerConfiguration {
@@ -53,7 +54,8 @@ export class AppService {
       ServerStatusEvent,
       LiveMatchUpdateEvent,
       MatchFailedEvent,
-      GameResultsEvent
+      GameResultsEvent,
+      PlayerAbandonedEvent
     ];
 
     this.ebus

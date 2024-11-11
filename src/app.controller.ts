@@ -7,7 +7,7 @@ import { LaunchGameServerResponse } from './gateway/commands/LaunchGameServer/la
 import { construct } from './gateway/util/construct';
 import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
 import { KillServerRequestedEvent } from './gateway/events/gs/kill-server-requested.event';
-import { FailedPlayerInfo, LiveMatchDto, MatchFailedOnSRCDS, MatchFinishedOnSRCDS } from './operator/dto';
+import { FailedPlayerInfo, LiveMatchDto, MatchFailedOnSRCDS, MatchFinishedOnSRCDS, PlayerAbandonOnSRCDS } from './operator/dto';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 import { itemIdByName } from './gateway/constants/items';
 import { GameResultsEvent } from './gateway/events/gs/game-results.event';
@@ -17,6 +17,7 @@ import { PlayerId } from './gateway/shared-types/player-id';
 import { MatchFailedEvent } from './gateway/events/match-failed.event';
 import { GameServerStoppedEvent } from './gateway/events/game-server-stopped.event';
 import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
+import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.event';
 
 @Controller()
 export class AppController {
@@ -103,9 +104,14 @@ export class AppController {
     this.ebus.publish(new ServerStatusEvent(d.server, false, undefined, undefined));
   }
 
+
+  @Post('/player_abandon')
+  async playerAbandon(@Body() d: PlayerAbandonOnSRCDS) {
+    await this.ebus.publish(new PlayerAbandonedEvent(new PlayerId(d.steam_id.toString()), d.match_id, d.mode))
+  }
+
   @Post('/match_results')
   async matchResults(@Body() d: MatchFinishedOnSRCDS){
-    console.log(JSON.stringify(d))
     const g = new GameResultsEvent(
       d.matchId,
       d.winner,
