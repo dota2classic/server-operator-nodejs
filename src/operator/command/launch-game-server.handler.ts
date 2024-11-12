@@ -66,7 +66,7 @@ export class LaunchGameServerCommandHandler
             case MatchmakingMode.RANKED:
                 return version == Dota2Version.Dota_681 ? Dota_GameMode.ALLPICK : Dota_GameMode.RANKED_AP;
             case MatchmakingMode.UNRANKED:
-                return Dota_GameMode.ALLPICK;
+                return Dota_GameMode.RANKED_AP;
             case MatchmakingMode.SOLOMID:
                 return Dota_GameMode.SOLOMID;
             case MatchmakingMode.TOURNAMENT_SOLOMID:
