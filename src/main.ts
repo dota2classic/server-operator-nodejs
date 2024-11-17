@@ -7,6 +7,7 @@ import { Logger } from '@nestjs/common';
 import { inspect } from 'util';
 import { GameServerDiscoveredEvent } from './gateway/events/game-server-discovered.event';
 import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
+import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -34,6 +35,7 @@ async function bootstrap() {
   ebus.subscribe(e => {
     if(e.constructor.name === GameServerDiscoveredEvent.name) return;
     if(e.constructor.name === ServerActualizationRequestedEvent.name) return;
+    if(e.constructor.name === LiveMatchUpdateEvent.name) return;
 
     elogger.log(
       `${inspect(e)}`
