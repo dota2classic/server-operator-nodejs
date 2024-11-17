@@ -1,4 +1,4 @@
-import * as find from 'find-process';
+import find from 'find-process';
 import { CommandLineConfig } from 'src/operator/command/launch-game-server.handler';
 
 export interface SrcdsProcess {
