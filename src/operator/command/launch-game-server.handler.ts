@@ -1,19 +1,16 @@
-import {CommandHandler, ICommandHandler} from '@nestjs/cqrs';
-import {Logger} from '@nestjs/common';
-import {GSMatchInfo, LaunchGameServerCommand} from 'src/gateway/commands/LaunchGameServer/launch-game-server.command';
-import {inspect} from 'util';
-import {spawn, exec} from "child_process";
-import {RCON_PASSWORD} from 'src/env';
-import {AppService, ServerConfiguration} from 'src/app.service';
-import * as path from "path";
-import {MatchmakingMode} from 'src/gateway/shared-types/matchmaking-mode';
-import {Dota2Version} from 'src/gateway/shared-types/dota2version';
-import {Dota_GameMode} from 'src/gateway/shared-types/dota-game-mode';
-import {MatchPlayer} from 'src/gateway/events/room-ready.event';
-import {isServerRunning} from 'src/util/rcon';
-import {LaunchGameServerResponse} from 'src/gateway/commands/LaunchGameServer/launch-game-server.response';
-import {getRunningSrcds} from 'src/util/processes';
-import * as fs from "fs";
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { Logger } from '@nestjs/common';
+import { GSMatchInfo, LaunchGameServerCommand } from 'src/gateway/commands/LaunchGameServer/launch-game-server.command';
+import { spawn } from 'child_process';
+import { RCON_PASSWORD } from 'src/env';
+import { AppService, ServerConfiguration } from 'src/app.service';
+import * as path from 'path';
+import { MatchmakingMode } from 'src/gateway/shared-types/matchmaking-mode';
+import { Dota2Version } from 'src/gateway/shared-types/dota2version';
+import { Dota_GameMode } from 'src/gateway/shared-types/dota-game-mode';
+import { isServerRunning } from 'src/util/rcon';
+import { LaunchGameServerResponse } from 'src/gateway/commands/LaunchGameServer/launch-game-server.response';
+import * as fs from 'fs';
 
 export interface CommandLineConfig {
     url: string,
@@ -171,13 +168,14 @@ export class LaunchGameServerCommandHandler
             '-port', `${server.port}`,
             '+map', `${map}`, // map
             '+tv_enable', '1', // enable tv
+            '+tv_port', `${server.port + 5}`, // set tv port to server + 5
             '+dota_force_gamemode', `${gameMode}`, // What game mode to run
             '-match', `${clConfigBase64}`, // Base64 encoded match data
             '+con_logfile', `logs/match_${matchId}.log`
         ]
 
         const args = argArray.join(' ');
-        
+
         if (process.platform === 'win32') {
             await this.runDedicatedWindows(server.path, args)
         } else if (process.platform === 'linux') {
@@ -187,7 +185,7 @@ export class LaunchGameServerCommandHandler
         }
         console.log("BEFORE RETURNING TRUE!")
 
-        
+
         return new LaunchGameServerResponse(true);
     }
 }
