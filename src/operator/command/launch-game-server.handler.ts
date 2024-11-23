@@ -186,6 +186,9 @@ export class LaunchGameServerCommandHandler
         console.log("BEFORE RETURNING TRUE!")
 
 
+        // Wait here 2 seconds so server is surely started
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
         return new LaunchGameServerResponse(true);
     }
 }
