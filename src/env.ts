@@ -8,3 +8,4 @@ export const REDIS_PASSWORD = () => process.env.REDIS_PASSWORD || undefined;
 
 export const RCON_PASSWORD = () => process.env.RCON_PASSWORD || 'undefined';
 
+export const FLUENTBIT_HOST = process.env.FLUENTBIT_HOST;
