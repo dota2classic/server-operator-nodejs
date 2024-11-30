@@ -1,7 +1,8 @@
-import { ServerConfiguration } from "src/app.service";
-import { GameResultsEvent } from "src/gateway/events/gs/game-results.event";
-import * as path from "path";
-import * as fs from "fs";
+import { ServerConfiguration } from 'src/app.service';
+import { GameResultsEvent } from 'src/gateway/events/gs/game-results.event';
+import * as path from 'path';
+import * as fs from 'fs';
+import { Logger } from '@nestjs/common';
 
 interface LogData {
     duration: number
@@ -59,13 +60,18 @@ interface LogData {
     ping_deviation: number
     full_resends: number
   }
-  
+
+
 
 export async function fillAdditionalData(evt: GameResultsEvent, server: ServerConfiguration){
-
     const logFile = path.join(server.path, 'dota/logs', `match_${evt.matchId}.log`);
+
+    const logger = new Logger('LogParser');
+    logger.log(`Beginning parsing log file`, { log_file: logFile, match_id: evt.matchId });
+
+
     const log = await fs.promises.readFile(logFile).then(it => it.toString());
-    
+
     const startSignal = "\nduration"
     let dataStartIndex = log.indexOf(startSignal);
     dataStartIndex = dataStartIndex + 1;
@@ -114,8 +120,10 @@ export async function fillAdditionalData(evt: GameResultsEvent, server: ServerCo
                 heroDamage,
                 heroHealing,
                 towerDamage,
-                netWorth                
+                netWorth,
             }
         })
     });
+
+    logger.log('Log file parsed', { log_file: logFile, match_id: evt.matchId });
 }

@@ -31,18 +31,20 @@ export class LaunchGameServerCommandHandler
     async execute(command: LaunchGameServerCommand) {
         const server = this.appService.config[command.url];
         if (!server) {
-            console.error("No such server here, skipping");
+          this.logger.verbose('Skipping launch command: not my server', {
+            server_url: command.url,
+            match_id: command.matchId,
+          });
             return undefined;
         }
 
 
-        console.log('Do we get stuck here?');
         if (await isServerRunning(server.url)) {
-            console.log('Server running, cant run it')
+          this.logger.log('Server is already running', { server_url: command.url, match_id: command.matchId });
             return new LaunchGameServerResponse(false);
         }
 
-        console.log('Server is not running, we can continue')
+      this.logger.log('Server is free', { server_url: command.url, match_id: command.matchId });
 
 
         return this.runDedicatedServer(server, command.info, command.matchId)
@@ -115,9 +117,6 @@ export class LaunchGameServerCommandHandler
         await fs.promises.writeFile(filename, batCmd);
         await fs.promises.chmod(filename, "755");
 
-        console.log(filename);
-        console.log(batCmd);
-
         const process = spawn(filename, {
             cwd: rootPath,
             shell: true,
@@ -155,8 +154,7 @@ export class LaunchGameServerCommandHandler
 
         const clConfigBase64 = Buffer.from(JSON.stringify(clConfig)).toString("base64");
 
-        console.log(JSON.stringify(clConfig));
-        console.log(clConfigBase64);
+      this.logger.log('MatchInfo for base64', clConfig);
 
         const argArray = [
             '-usercon', // Enable RCON
@@ -174,6 +172,8 @@ export class LaunchGameServerCommandHandler
             '+con_logfile', `logs/match_${matchId}.log`
         ]
 
+      this.logger.log('Launch args', { launch_arguments: argArray, match_id: matchId, server: server.url });
+
         const args = argArray.join(' ');
 
         if (process.platform === 'win32') {
@@ -183,7 +183,8 @@ export class LaunchGameServerCommandHandler
         } else {
             throw new Error("Unsupported platform for dedicated server")
         }
-        console.log("BEFORE RETURNING TRUE!")
+
+      this.logger.log('Dedicated server started, continuing');
 
 
         // Wait here 2 seconds so server is surely started

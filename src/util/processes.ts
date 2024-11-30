@@ -13,7 +13,6 @@ interface ProcessWrapper {
     arguments: string[];
 }
 
-
 const checkProcess = (inf: ProcessWrapper): SrcdsProcess | null => {
 
     const indexOfPort = inf.arguments.indexOf('-port');
