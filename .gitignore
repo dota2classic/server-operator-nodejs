@@ -16,6 +16,7 @@ logfile.txt
 serverlist.json
 # OS
 .DS_Store
+sslcert/*
 
 # Tests
 /coverage

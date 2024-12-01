@@ -1,4 +1,9 @@
-import { Inject, Injectable, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  OnApplicationBootstrap,
+  OnApplicationShutdown,
+} from '@nestjs/common';
 import { EventBus, ofType } from '@nestjs/cqrs';
 import { Cron } from '@nestjs/schedule';
 import { GameServerDiscoveredEvent } from './gateway/events/game-server-discovered.event';
@@ -13,7 +18,6 @@ import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.eve
 import * as express from 'express';
 import * as http from 'http';
 
-
 export interface ServerConfiguration {
   path: string;
   port: number;
@@ -24,21 +28,25 @@ export interface ServerConfiguration {
 }
 
 @Injectable()
-export class AppService implements OnApplicationShutdown, OnApplicationBootstrap {
+export class AppService
+  implements OnApplicationShutdown, OnApplicationBootstrap
+{
   config: Record<string, ServerConfiguration>;
   private pingServer: http.Server;
 
   constructor(
     private readonly ebus: EventBus,
     @Inject('QueryCore') private readonly redisEventQueue: ClientProxy,
-  ){
-      this.config = JSON.parse(fs.readFileSync("serverlist.json").toString());
+  ) {
+    this.config = JSON.parse(fs.readFileSync('serverlist.json').toString());
     this.pingServer = this.createExpressEchoServer();
-
   }
 
   createExpressEchoServer(port = 80) {
     const app = express();
+
+    var privateKey = fs.readFileSync('sslcert/server.key', 'utf8');
+    var certificate = fs.readFileSync('sslcert/server.crt', 'utf8');
 
     app.get('/', (req, res) => {
       res.send('Hello World!');
@@ -49,15 +57,14 @@ export class AppService implements OnApplicationShutdown, OnApplicationBootstrap
     });
   }
 
-
-
   @Cron('*/5 * * * * *')
   handleCron() {
     Object.values(this.config).forEach((configuration) => {
-      this.ebus.publish(new GameServerDiscoveredEvent(configuration.url, configuration.version));
+      this.ebus.publish(
+        new GameServerDiscoveredEvent(configuration.url, configuration.version),
+      );
     });
   }
-
 
   async onApplicationBootstrap() {
     try {
@@ -70,16 +77,15 @@ export class AppService implements OnApplicationShutdown, OnApplicationBootstrap
       LiveMatchUpdateEvent,
       MatchFailedEvent,
       GameResultsEvent,
-      PlayerAbandonedEvent
+      PlayerAbandonedEvent,
     ];
 
     this.ebus
       .pipe(ofType(...publicEvents))
-      .subscribe(t => this.redisEventQueue.emit(t.constructor.name, t));
+      .subscribe((t) => this.redisEventQueue.emit(t.constructor.name, t));
   }
 
   onApplicationShutdown(signal?: string): any {
     return new Promise((resolve, reject) => this.pingServer.close(resolve));
   }
-
 }
