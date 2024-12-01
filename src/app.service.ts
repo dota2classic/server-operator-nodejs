@@ -45,9 +45,6 @@ export class AppService
   createExpressEchoServer(port = 80) {
     const app = express();
 
-    var privateKey = fs.readFileSync('sslcert/server.key', 'utf8');
-    var certificate = fs.readFileSync('sslcert/server.crt', 'utf8');
-
     app.get('/', (req, res) => {
       res.send('Hello World!');
     });
