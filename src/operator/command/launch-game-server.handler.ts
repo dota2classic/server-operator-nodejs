@@ -183,8 +183,6 @@ export class LaunchGameServerCommandHandler
       '1', // enable tv
       '+tv_port',
       `${server.port + 5}`, // set tv port to server + 5
-      '+tv_record',
-      matchId,
       '+dota_force_gamemode',
       `${gameMode}`, // What game mode to run
       '-match',
