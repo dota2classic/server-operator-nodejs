@@ -49,10 +49,16 @@ export interface MatchFailedOnSRCDS {
 export interface PlayerAbandonOnSRCDS {
     match_id: number;
     steam_id: number;
+    abandon_index: number;
     mode: MatchmakingMode;
     server: string;
 }
 
+export interface PlayerConnectedOnSRCDS {
+    match_id: number;
+    steam_id: number;
+    server: string;
+}
 
 export interface MatchFinishedOnSRCDS {
     matchId: number

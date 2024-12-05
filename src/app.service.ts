@@ -17,6 +17,7 @@ import { MatchFailedEvent } from './gateway/events/match-failed.event';
 import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.event';
 import * as express from 'express';
 import * as http from 'http';
+import { PlayerConnectedEvent } from './gateway/events/srcds/player-connected.event';
 
 export interface ServerConfiguration {
   path: string;
@@ -75,6 +76,7 @@ export class AppService
       MatchFailedEvent,
       GameResultsEvent,
       PlayerAbandonedEvent,
+      PlayerConnectedEvent
     ];
 
     this.ebus

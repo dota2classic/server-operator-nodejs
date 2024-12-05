@@ -7,7 +7,7 @@ import { LaunchGameServerResponse } from './gateway/commands/LaunchGameServer/la
 import { construct } from './gateway/util/construct';
 import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
 import { KillServerRequestedEvent } from './gateway/events/gs/kill-server-requested.event';
-import { LiveMatchDto, MatchFailedOnSRCDS, MatchFinishedOnSRCDS, PlayerAbandonOnSRCDS } from './operator/dto';
+import { LiveMatchDto, MatchFailedOnSRCDS, MatchFinishedOnSRCDS, PlayerAbandonOnSRCDS, PlayerConnectedOnSRCDS } from './operator/dto';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 import { itemIdByName } from './gateway/constants/items';
 import { GameResultsEvent } from './gateway/events/gs/game-results.event';
@@ -17,6 +17,7 @@ import { PlayerId } from './gateway/shared-types/player-id';
 import { MatchFailedEvent } from './gateway/events/match-failed.event';
 import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
 import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.event';
+import { PlayerConnectedEvent } from './gateway/events/srcds/player-connected.event';
 
 @Controller()
 export class AppController {
@@ -108,8 +109,14 @@ export class AppController {
 
   @Post('/player_abandon')
   async playerAbandon(@Body() d: PlayerAbandonOnSRCDS) {
-    this.logger.log('Player abandoned', { match_id: d.match_id, steam_id: d.steam_id, mode: d.mode, server: d.server });
-    await this.ebus.publish(new PlayerAbandonedEvent(new PlayerId(d.steam_id.toString()), d.match_id, d.mode))
+    this.logger.log('Player abandoned', { match_id: d.match_id, steam_id: d.steam_id, mode: d.mode, server: d.server, abandon_index: d.abandon_index });
+    await this.ebus.publish(new PlayerAbandonedEvent(new PlayerId(d.steam_id.toString()), d.match_id, d.abandon_index, d.mode))
+  }
+
+  @Post('/player_connect')
+  async playerConnect(@Body() d: PlayerConnectedOnSRCDS) {
+    this.logger.log('Player connected', { match_id: d.match_id, steam_id: d.steam_id, server: d.server });
+    await this.ebus.publish(new PlayerConnectedEvent(new PlayerId(d.steam_id.toString()), d.match_id, d.server))
   }
 
   @Post('/match_results')
