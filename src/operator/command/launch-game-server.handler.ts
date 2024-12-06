@@ -158,6 +158,11 @@ export class LaunchGameServerCommandHandler
       url: server.url,
     };
 
+    clConfig.info.players.forEach((plr, idx) => {
+      // @ts-ignore
+      plr['partyId'] = `Party_${idx}`;
+    });
+
     const clConfigBase64 = Buffer.from(JSON.stringify(clConfig)).toString(
       'base64',
     );
