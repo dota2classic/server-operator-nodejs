@@ -59,40 +59,42 @@ export class AppController {
         timestamp: it.timestamp,
         heroes: it.heroes.map(h => {
           return {
-            hero: h.hero,
             team: h.team,
             steam_id: h.steam_id.toString(),
-            level: h.level,
             connection: h.connection,
 
-            bot: h.bot,
-            pos_x: h.pos_x,
-            pos_y: h.pos_y,
-            angle: h.angle,
+            hero_data: h.hero_data && {
+              level: h.hero_data.level,
+              hero: h.hero_data.hero,
 
-            mana: h.mana,
-            max_mana: h.max_mana,
+              bot: h.hero_data.bot,
+              pos_x: h.hero_data.pos_x,
+              pos_y: h.hero_data.pos_y,
+              angle: h.hero_data.angle,
 
-            health: h.health,
-            max_health: h.max_health,
+              mana: h.hero_data.mana,
+              max_mana: h.hero_data.max_mana,
 
-            item0: itemIdByName(h.items[0].replace('item_', '')),
-            item1: itemIdByName(h.items[1].replace('item_', '')),
-            item2: itemIdByName(h.items[2].replace('item_', '')),
-            item3: itemIdByName(h.items[3].replace('item_', '')),
-            item4: itemIdByName(h.items[4].replace('item_', '')),
-            item5: itemIdByName(h.items[5].replace('item_', '')),
+              health: h.hero_data.health,
+              max_health: h.hero_data.max_health,
 
-            kills: h.kills,
-            deaths: h.deaths,
-            assists: h.assists,
-            respawn_time: h.respawn_time
+              item0: itemIdByName(h.hero_data.items[0].replace('item_', '')),
+              item1: itemIdByName(h.hero_data.items[1].replace('item_', '')),
+              item2: itemIdByName(h.hero_data.items[2].replace('item_', '')),
+              item3: itemIdByName(h.hero_data.items[3].replace('item_', '')),
+              item4: itemIdByName(h.hero_data.items[4].replace('item_', '')),
+              item5: itemIdByName(h.hero_data.items[5].replace('item_', '')),
+
+              kills: h.hero_data.kills,
+              deaths: h.hero_data.deaths,
+              assists: h.hero_data.assists,
+              respawn_time: h.hero_data.respawn_time
+            },
           }
         })
     }
 
     this.ebus.publish(construct(LiveMatchUpdateEvent, mapped));
-
 
     return 'hey'
   }

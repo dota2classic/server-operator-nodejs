@@ -12,12 +12,10 @@ export interface LiveMatchDto {
     timestamp: number
     duration: number
     server: string;
-    heroes: HeroData[]
+    heroes: SlotInfoDto[]
 }
 
 export interface HeroData {
-    steam_id: number
-    connection: DotaConnectionState;
     bot: boolean
     pos_x: number
     pos_y: number
@@ -34,7 +32,14 @@ export interface HeroData {
     kills: number
     deaths: number
     assists: number
-    team: number
+}
+
+
+export class SlotInfoDto {
+    team: number;
+    steam_id: string;
+    connection: DotaConnectionState;
+    hero_data: HeroData | undefined;
 }
 
 export interface FailedPlayerInfo {
@@ -44,7 +49,7 @@ export interface FailedPlayerInfo {
 }
 
 export interface MatchFailedOnSRCDS {
-    players: FailedPlayerInfo[];
+    players: SlotInfoDto[];
     match_id: number;
     server: string;
 }
