@@ -54,6 +54,7 @@ export class AppController {
         server: it.server,
         matchmaking_mode: it.matchmaking_mode,
         game_mode: it.game_mode,
+        game_state: it.game_state,
         duration: it.duration,
         timestamp: it.timestamp,
         heroes: it.heroes.map(h => {
@@ -62,6 +63,7 @@ export class AppController {
             team: h.team,
             steam_id: h.steam_id.toString(),
             level: h.level,
+            connection: h.connection,
 
             bot: h.bot,
             pos_x: h.pos_x,

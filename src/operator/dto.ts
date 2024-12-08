@@ -1,4 +1,5 @@
 import { Dota_GameMode } from "src/gateway/shared-types/dota-game-mode";
+import { Dota_GameRulesState } from "src/gateway/shared-types/dota-game-rules-state";
 import { DotaConnectionState } from "src/gateway/shared-types/dota-player-connection-state";
 import { DotaTeam } from "src/gateway/shared-types/dota-team";
 import { MatchmakingMode } from "src/gateway/shared-types/matchmaking-mode";
@@ -7,6 +8,7 @@ export interface LiveMatchDto {
     match_id: number
     matchmaking_mode: MatchmakingMode
     game_mode: Dota_GameMode
+    game_state: Dota_GameRulesState;
     timestamp: number
     duration: number
     server: string;
@@ -15,6 +17,7 @@ export interface LiveMatchDto {
 
 export interface HeroData {
     steam_id: number
+    connection: DotaConnectionState;
     bot: boolean
     pos_x: number
     pos_y: number
