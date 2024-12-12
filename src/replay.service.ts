@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectS3, S3 } from 'nestjs-s3';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import { PutObjectCommandInput } from '@aws-sdk/client-s3';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { getRunningSrcds } from './util/processes';
