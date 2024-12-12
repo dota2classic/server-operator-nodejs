@@ -10,6 +10,7 @@ import { getRunningSrcds } from './util/processes';
 @Injectable()
 export class ReplayService {
   private logger = new Logger(ReplayService.name);
+  private checking: boolean = false;
 
   constructor(
     private readonly configService: ConfigService,
@@ -68,27 +69,41 @@ export class ReplayService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   private async checkUploadableReplays() {
-    const runningGames = await getRunningSrcds();
-    const unsafeMatchIds: number[] = runningGames.map((it) => it.match.matchId);
+    if (this.checking) {
+      this.logger.log('Skipping replay check: another one in progress');
+      return;
+    }
+    try {
+      this.checking = true;
+      const runningGames = await getRunningSrcds();
+      const unsafeMatchIds: number[] = runningGames.map(
+        (it) => it.match.matchId,
+      );
 
-    this.logger.log(`Running games, cant touch replays`, {
-      unsafe_match_ids: unsafeMatchIds,
-    });
-    const rootFolder = path.join(
-      this.configService.get('srcds.dotaRoot'),
-      'dota',
-      'replays',
-    );
-    const replays = await fs.promises.readdir(rootFolder);
-    for (let replay of replays) {
-      const id = parseInt(replay.split('.')[0]);
-      if (unsafeMatchIds.includes(id)) {
-        this.logger.verbose(`Skipping upload for match: game in progress`, {
-          match_id: id,
-        });
-        continue; // We can't touch this yet
+      this.logger.log(`Running games, cant touch replays`, {
+        unsafe_match_ids: unsafeMatchIds,
+      });
+      const rootFolder = path.join(
+        this.configService.get('srcds.dotaRoot'),
+        'dota',
+        'replays',
+      );
+      const replays = await fs.promises.readdir(rootFolder);
+      for (let replay of replays) {
+        const id = parseInt(replay.split('.')[0]);
+        if (unsafeMatchIds.includes(id)) {
+          this.logger.verbose(`Skipping upload for match: game in progress`, {
+            match_id: id,
+          });
+          continue; // We can't touch this yet
+        }
+        await this.uploadReplay(id);
       }
-      await this.uploadReplay(id);
+    } catch (e) {
+      this.logger.error('There was an error uploading replays:');
+      this.logger.error(e);
+    } finally {
+      this.checking = false;
     }
   }
 }
