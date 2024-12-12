@@ -1,6 +1,7 @@
 import {
   Inject,
   Injectable,
+  Logger,
   OnApplicationBootstrap,
   OnApplicationShutdown,
 } from '@nestjs/common';
@@ -32,9 +33,10 @@ export interface ServerConfiguration {
 export class AppService
   implements OnApplicationShutdown, OnApplicationBootstrap
 {
-  config: Record<string, ServerConfiguration>;
+  public config: Record<string, ServerConfiguration>;
   private pingServer: http.Server;
 
+  private logger = new Logger(AppService.name);
   constructor(
     private readonly ebus: EventBus,
     @Inject('QueryCore') private readonly redisEventQueue: ClientProxy,
@@ -76,7 +78,7 @@ export class AppService
       MatchFailedEvent,
       GameResultsEvent,
       PlayerAbandonedEvent,
-      PlayerConnectedEvent
+      PlayerConnectedEvent,
     ];
 
     this.ebus

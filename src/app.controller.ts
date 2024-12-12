@@ -1,4 +1,4 @@
-import { Body, Controller, Logger, Post } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { MessagePattern } from '@nestjs/microservices';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
@@ -7,7 +7,13 @@ import { LaunchGameServerResponse } from './gateway/commands/LaunchGameServer/la
 import { construct } from './gateway/util/construct';
 import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
 import { KillServerRequestedEvent } from './gateway/events/gs/kill-server-requested.event';
-import { LiveMatchDto, MatchFailedOnSRCDS, MatchFinishedOnSRCDS, PlayerAbandonOnSRCDS, PlayerConnectedOnSRCDS } from './operator/dto';
+import {
+  LiveMatchDto,
+  MatchFailedOnSRCDS,
+  MatchFinishedOnSRCDS,
+  PlayerAbandonOnSRCDS,
+  PlayerConnectedOnSRCDS,
+} from './operator/dto';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 import { itemIdByName } from './gateway/constants/items';
 import { GameResultsEvent } from './gateway/events/gs/game-results.event';
@@ -18,11 +24,18 @@ import { MatchFailedEvent } from './gateway/events/match-failed.event';
 import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
 import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.event';
 import { PlayerConnectedEvent } from './gateway/events/srcds/player-connected.event';
+import { ReplayService } from './replay.service';
 
 @Controller()
 export class AppController {
   private readonly logger = new Logger('AppController');
-  constructor(private readonly appService: AppService, private readonly cbus: CommandBus, private readonly ebus: EventBus) {}
+
+  constructor(
+    private readonly appService: AppService,
+    private readonly cbus: CommandBus,
+    private readonly ebus: EventBus,
+    private readonly replayService: ReplayService,
+  ) {}
 
   @MessagePattern(LaunchGameServerCommand.name)
   async LaunchGameServerCommand(
@@ -35,13 +48,13 @@ export class AppController {
   async ServerActualizationRequestedEvent(
     query: ServerActualizationRequestedEvent,
   ) {
-    return this.ebus.publish(construct(ServerActualizationRequestedEvent, query));
+    return this.ebus.publish(
+      construct(ServerActualizationRequestedEvent, query),
+    );
   }
 
   @MessagePattern(KillServerRequestedEvent.name)
-  async KillServerRequestedEvent(
-    query: KillServerRequestedEvent,
-  ) {
+  async KillServerRequestedEvent(query: KillServerRequestedEvent) {
     return this.ebus.publish(construct(KillServerRequestedEvent, query));
   }
 
@@ -50,82 +63,121 @@ export class AppController {
     // Propagate
 
     const mapped: LiveMatchUpdateEvent = {
-        matchId: it.match_id,
-        server: it.server,
-        matchmaking_mode: it.matchmaking_mode,
-        game_mode: it.game_mode,
-        game_state: it.game_state,
-        duration: it.duration,
-        timestamp: it.timestamp,
-        heroes: it.heroes.map(h => {
-          return {
-            team: h.team,
-            steam_id: h.steam_id.toString(),
-            connection: h.connection,
+      matchId: it.match_id,
+      server: it.server,
+      matchmaking_mode: it.matchmaking_mode,
+      game_mode: it.game_mode,
+      game_state: it.game_state,
+      duration: it.duration,
+      timestamp: it.timestamp,
+      heroes: it.heroes.map((h) => {
+        return {
+          team: h.team,
+          steam_id: h.steam_id.toString(),
+          connection: h.connection,
 
-            hero_data: h.hero_data && {
-              level: h.hero_data.level,
-              hero: h.hero_data.hero,
+          hero_data: h.hero_data && {
+            level: h.hero_data.level,
+            hero: h.hero_data.hero,
 
-              bot: h.hero_data.bot,
-              pos_x: h.hero_data.pos_x,
-              pos_y: h.hero_data.pos_y,
-              angle: h.hero_data.angle,
+            bot: h.hero_data.bot,
+            pos_x: h.hero_data.pos_x,
+            pos_y: h.hero_data.pos_y,
+            angle: h.hero_data.angle,
 
-              mana: h.hero_data.mana,
-              max_mana: h.hero_data.max_mana,
+            mana: h.hero_data.mana,
+            max_mana: h.hero_data.max_mana,
 
-              health: h.hero_data.health,
-              max_health: h.hero_data.max_health,
+            health: h.hero_data.health,
+            max_health: h.hero_data.max_health,
 
-              item0: itemIdByName(h.hero_data.items[0].replace('item_', '')),
-              item1: itemIdByName(h.hero_data.items[1].replace('item_', '')),
-              item2: itemIdByName(h.hero_data.items[2].replace('item_', '')),
-              item3: itemIdByName(h.hero_data.items[3].replace('item_', '')),
-              item4: itemIdByName(h.hero_data.items[4].replace('item_', '')),
-              item5: itemIdByName(h.hero_data.items[5].replace('item_', '')),
+            item0: itemIdByName(h.hero_data.items[0].replace('item_', '')),
+            item1: itemIdByName(h.hero_data.items[1].replace('item_', '')),
+            item2: itemIdByName(h.hero_data.items[2].replace('item_', '')),
+            item3: itemIdByName(h.hero_data.items[3].replace('item_', '')),
+            item4: itemIdByName(h.hero_data.items[4].replace('item_', '')),
+            item5: itemIdByName(h.hero_data.items[5].replace('item_', '')),
 
-              kills: h.hero_data.kills,
-              deaths: h.hero_data.deaths,
-              assists: h.hero_data.assists,
-              respawn_time: h.hero_data.respawn_time
-            },
-          }
-        })
-    }
+            kills: h.hero_data.kills,
+            deaths: h.hero_data.deaths,
+            assists: h.hero_data.assists,
+            respawn_time: h.hero_data.respawn_time,
+          },
+        };
+      }),
+    };
 
     this.ebus.publish(construct(LiveMatchUpdateEvent, mapped));
 
-    return 'hey'
+    return 'hey';
   }
 
   @Post('/failed_match')
   async failedMatch(@Body() d: MatchFailedOnSRCDS) {
-    this.logger.log('Match failed to start', { match_id: d.match_id, server: d.server, players: d.players });
+    this.logger.log('Match failed to start', {
+      match_id: d.match_id,
+      server: d.server,
+      players: d.players,
+    });
 
-    const failedPlayers = d.players.filter(t => t.connection === DotaConnectionState.DOTA_CONNECTION_STATE_FAILED)
-    if(failedPlayers.length > 0){
-      this.ebus.publish(new MatchFailedEvent(d.match_id, d.server, failedPlayers.map(plr => new PlayerId(plr.steam_id.toString()))))
+    const failedPlayers = d.players.filter(
+      (t) => t.connection === DotaConnectionState.DOTA_CONNECTION_STATE_FAILED,
+    );
+    if (failedPlayers.length > 0) {
+      this.ebus.publish(
+        new MatchFailedEvent(
+          d.match_id,
+          d.server,
+          failedPlayers.map((plr) => new PlayerId(plr.steam_id.toString())),
+        ),
+      );
     }
-    this.ebus.publish(new ServerStatusEvent(d.server, false, undefined, undefined));
+    this.ebus.publish(
+      new ServerStatusEvent(d.server, false, undefined, undefined),
+    );
   }
-
 
   @Post('/player_abandon')
   async playerAbandon(@Body() d: PlayerAbandonOnSRCDS) {
-    this.logger.log('Player abandoned', { match_id: d.match_id, steam_id: d.steam_id, mode: d.mode, server: d.server, abandon_index: d.abandon_index });
-    await this.ebus.publish(new PlayerAbandonedEvent(new PlayerId(d.steam_id.toString()), d.match_id, d.abandon_index, d.mode))
+    this.logger.log('Player abandoned', {
+      match_id: d.match_id,
+      steam_id: d.steam_id,
+      mode: d.mode,
+      server: d.server,
+      abandon_index: d.abandon_index,
+    });
+    await this.ebus.publish(
+      new PlayerAbandonedEvent(
+        new PlayerId(d.steam_id.toString()),
+        d.match_id,
+        d.abandon_index,
+        d.mode,
+      ),
+    );
   }
 
   @Post('/player_connect')
   async playerConnect(@Body() d: PlayerConnectedOnSRCDS) {
-    this.logger.log('Player connected', { match_id: d.match_id, steam_id: d.steam_id, server: d.server });
-    await this.ebus.publish(new PlayerConnectedEvent(new PlayerId(d.steam_id.toString()), d.match_id, d.server))
+    this.logger.log('Player connected', {
+      match_id: d.match_id,
+      steam_id: d.steam_id,
+      server: d.server,
+    });
+    await this.ebus.publish(
+      new PlayerConnectedEvent(
+        new PlayerId(d.steam_id.toString()),
+        d.match_id,
+        d.server,
+      ),
+    );
   }
 
   @Post('/match_results')
-  async matchResults(@Body() d: MatchFinishedOnSRCDS){
-    this.logger.log('MatchResults received', { results: d, match_id: d.matchId });
+  async matchResults(@Body() d: MatchFinishedOnSRCDS) {
+    this.logger.log('MatchResults received', {
+      results: d,
+      match_id: d.matchId,
+    });
     const g = new GameResultsEvent(
       d.matchId,
       d.winner,
@@ -134,7 +186,7 @@ export class AppController {
       d.type,
       d.timestamp,
       d.server,
-      d.players.map(p => ({
+      d.players.map((p) => ({
         steam_id: p.steam_id.toString(),
         team: p.team,
         kills: p.kills,
@@ -153,31 +205,41 @@ export class AppController {
         xpm: p.gpm,
         last_hits: p.last_hits,
         denies: p.denies,
-        abandoned: p.connection === DotaConnectionState.DOTA_CONNECTION_STATE_ABANDONED,
+        abandoned:
+          p.connection === DotaConnectionState.DOTA_CONNECTION_STATE_ABANDONED,
         networth: p.networth,
 
         heroDamage: 0,
         heroHealing: 0,
         towerDamage: 0,
 
-        hero: p.hero
-      }))
+        hero: p.hero,
+      })),
     );
 
-
     // Make sure that log file is fully saved.
-    await new Promise((resolve) => setTimeout(resolve, 5000))
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    this.logger.verbose('Waited 5 seconds before parsing log file', { match_id: d.matchId });
+    this.logger.verbose('Waited 5 seconds before parsing log file', {
+      match_id: d.matchId,
+    });
 
-    try{
+    try {
       await fillAdditionalData(g, this.appService.config[g.server]);
-    }catch(e){
-      this.logger.error('Failed to fill data from log file', { error: e, match_id: d.matchId });
+    } catch (e) {
+      this.logger.error('Failed to fill data from log file', {
+        error: e,
+        match_id: d.matchId,
+      });
     }
 
-    this.ebus.publish(g)
+    this.ebus.publish(g);
 
     return 200;
+  }
+
+  @Get('/alkjsfdasklfaskld')
+  async debugshit() {
+    await this.replayService.uploadAllReplays();
   }
 }

@@ -10,6 +10,7 @@ import { KillServerRequestedEventHandler } from './operator/event-handler/kill-s
 import { S3Module } from 'nestjs-s3';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './configuration';
+import { ReplayService } from './replay.service';
 
 const EventHandlers = [
   GameServerNotStartedHandler,
@@ -63,6 +64,7 @@ const EventHandlers = [
   controllers: [AppController],
   providers: [
     AppService,
+    ReplayService,
     ...EventHandlers,
     // outerQuery(GameServerDiscoveredEvent, 'QueryCore', qCache()),
   ],
