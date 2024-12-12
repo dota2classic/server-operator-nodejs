@@ -17,7 +17,7 @@ serverlist.json
 # OS
 .DS_Store
 sslcert/*
-
+config.yaml
 # Tests
 /coverage
 /.nyc_output

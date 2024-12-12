@@ -1,52 +1,64 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CqrsModule } from '@nestjs/cqrs';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { REDIS_HOST, REDIS_PASSWORD, REDIS_URL } from './env';
-import { outerQuery } from 'src/gateway/util/outerQuery';
-import { QueryCache } from 'src/rcache';
-import { ServerActualizationRequestedEvent } from 'src/gateway/events/gs/server-actualization-requested.event';
+import { ClientsModule, RedisOptions, Transport } from '@nestjs/microservices';
 import { GameServerNotStartedHandler } from './operator/event-handler/server-actualization-requested.handler';
 import { LaunchGameServerCommandHandler } from './operator/command/launch-game-server.handler';
 import { ScheduleModule } from '@nestjs/schedule';
-import { GameServerDiscoveredEvent } from './gateway/events/game-server-discovered.event';
 import { KillServerRequestedEventHandler } from './operator/event-handler/kill-server-requested.handler';
-
-
-
+import { S3Module } from 'nestjs-s3';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import configuration from './configuration';
 
 const EventHandlers = [
   GameServerNotStartedHandler,
   LaunchGameServerCommandHandler,
-  KillServerRequestedEventHandler
-]
-
-export function qCache<T, B>() {
-  return new QueryCache<T, B>({
-    url: REDIS_URL(),
-    password: REDIS_PASSWORD(),
-    ttl: 10,
-  });
-}
+  KillServerRequestedEventHandler,
+];
 
 @Module({
   imports: [
     CqrsModule,
+    ConfigModule.forRoot({
+      load: [configuration],
+      isGlobal: true,
+    }),
     ScheduleModule.forRoot(),
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
         name: 'QueryCore',
-        transport: Transport.REDIS,
-        options: {
-          url: REDIS_URL(),
-          host: REDIS_HOST(),
-          retryAttempts: Infinity,
-          retryDelay: 5000,
-          password: REDIS_PASSWORD(),
+        useFactory(config: ConfigService): RedisOptions {
+          return {
+            transport: Transport.REDIS,
+            options: {
+              host: config.get('redis.host'),
+              password: config.get('redis.password'),
+            },
+          } satisfies RedisOptions;
         },
+        inject: [ConfigService],
+        imports: [],
       },
-    ] as any),
+    ]),
+    S3Module.forRootAsync({
+      useFactory(config: ConfigService) {
+        return {
+          config: {
+            credentials: {
+              accessKeyId: config.get('s3.accessKeyId'),
+              secretAccessKey: config.get('s3.accessKeySecret'),
+            },
+            // region: 'us-east-1',
+            region: 'any',
+            endpoint: config.get('s3.endpoint'),
+            forcePathStyle: true,
+          },
+        };
+      },
+      inject: [ConfigService],
+      imports: [],
+    }),
   ],
   controllers: [AppController],
   providers: [

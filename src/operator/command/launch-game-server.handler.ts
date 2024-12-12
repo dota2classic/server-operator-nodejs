@@ -5,7 +5,6 @@ import {
   LaunchGameServerCommand,
 } from 'src/gateway/commands/LaunchGameServer/launch-game-server.command';
 import { spawn } from 'child_process';
-import { RCON_PASSWORD } from 'src/env';
 import { AppService, ServerConfiguration } from 'src/app.service';
 import * as path from 'path';
 import { MatchmakingMode } from 'src/gateway/shared-types/matchmaking-mode';
@@ -14,6 +13,7 @@ import { Dota_GameMode } from 'src/gateway/shared-types/dota-game-mode';
 import { isServerRunning } from 'src/util/rcon';
 import { LaunchGameServerResponse } from 'src/gateway/commands/LaunchGameServer/launch-game-server.response';
 import * as fs from 'fs';
+import { ConfigService } from '@nestjs/config';
 
 export interface CommandLineConfig {
   url: string;
@@ -27,7 +27,10 @@ export class LaunchGameServerCommandHandler
 {
   private readonly logger = new Logger(LaunchGameServerCommand.name);
 
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly config: ConfigService,
+  ) {}
 
   async execute(command: LaunchGameServerCommand) {
     const server = this.appService.config[command.url];
@@ -177,7 +180,7 @@ export class LaunchGameServerCommandHandler
       '-game',
       'dota', // Game
       '+rcon_password',
-      `${RCON_PASSWORD()}`, // RCON password
+      `${this.config.get('srcds.rconPassword')}`, // RCON password
       '+ip',
       '0.0.0.0', // Host
       '-port',
