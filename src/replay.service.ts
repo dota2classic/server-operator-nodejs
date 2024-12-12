@@ -82,7 +82,12 @@ export class ReplayService {
     const replays = await fs.promises.readdir(rootFolder);
     for (let replay of replays) {
       const id = parseInt(replay.split('.')[0]);
-      if (unsafeMatchIds.includes(id)) continue; // We can't touch this yet
+      if (unsafeMatchIds.includes(id)) {
+        this.logger.verbose(`Skipping upload for match: game in progress`, {
+          match_id: id,
+        });
+        continue; // We can't touch this yet
+      }
       await this.uploadReplay(id);
     }
   }
