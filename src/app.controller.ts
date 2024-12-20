@@ -247,6 +247,6 @@ export class AppController {
 
   @Get('/alkjsfdasklfaskld')
   async debugshit() {
-    await this.replayService.uploadAllReplays();
+    // await this.replayService.uploadAllReplays();
   }
 }

@@ -1,42 +1,47 @@
 import * as winston from 'winston';
-import * as winstonTransport from 'winston-transport';
 import * as fluent from 'fluent-logger';
+import * as winstonTransport from 'winston-transport';
 import { LoggerService } from '@nestjs/common/services/logger.service';
 import { LogLevel } from '@nestjs/common';
 
 export class WinstonWrapper implements LoggerService {
   private winstonInstance: winston.Logger;
 
-  constructor(host: string, port: number = 24224) {
-    const fluentLogger = fluent.createFluentSender('server-node', {
+  constructor(host: string, port: number = 24224, disabled = false) {
+    const fluentLogger = fluent.createFluentSender('api-gateway', {
       host: host,
       port: port,
       timeout: 3.0,
       reconnectInterval: 10_000, // 10 secs
     });
 
-    this.winstonInstance = winston.createLogger({
-      transports: [
-        new winston.transports.Console({
-          level: 'verbose',
-          format: winston.format.combine(
-            winston.format.timestamp({
-              format: 'MM-DD HH:mm:ss.SSS',
-            }),
-            winston.format.prettyPrint(),
-            winston.format.printf((info) => {
-              const { level, timestamp, ...message } = info;
-              return `${timestamp} | ${level.padEnd(5)} | ${JSON.stringify(message)}`;
-            }),
-          ),
-        }),
+    const transports: winstonTransport[] = [
+      new winston.transports.Console({
+        level: 'verbose',
+        format: winston.format.combine(
+          winston.format.timestamp({
+            format: 'MM-DD HH:mm:ss.SSS',
+          }),
+          winston.format.prettyPrint(),
+          winston.format.printf((info) => {
+            const { level, timestamp, ...message } = info;
+            return `${timestamp} | ${level.padEnd(5)} | ${JSON.stringify(message)}`;
+          }),
+        ),
+      }),
+    ];
+    if (!disabled)
+      transports.push(
         new winstonTransport({
           level: 'verbose',
           log(v, next) {
             fluentLogger.emit(v, next);
           },
         }),
-      ],
+      );
+
+    this.winstonInstance = winston.createLogger({
+      transports: transports,
     });
   }
 

@@ -10,7 +10,11 @@ async function bootstrap() {
   const config = new ConfigService(configuration());
 
   const app = await NestFactory.create(AppModule, {
-    logger: new WinstonWrapper(config.get('fluentbit.host')),
+    logger: new WinstonWrapper(
+      config.get('fluentbit.host'),
+      config.get('fluentbit.port'),
+      config.get('fluentbit.disabled'),
+    ),
   });
 
   app.connectMicroservice({
