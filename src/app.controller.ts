@@ -4,6 +4,8 @@ import { MessagePattern } from '@nestjs/microservices';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { LaunchGameServerCommand } from './gateway/commands/LaunchGameServer/launch-game-server.command';
 import { LaunchGameServerResponse } from './gateway/commands/LaunchGameServer/launch-game-server.response';
+import { RunRconCommand } from './gateway/commands/RunRcon/run-rcon.command';
+import { RunRconResponse } from './gateway/commands/RunRcon/run-rcon.response';
 import { construct } from './gateway/util/construct';
 import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
 import { KillServerRequestedEvent } from './gateway/events/gs/kill-server-requested.event';
@@ -56,6 +58,11 @@ export class AppController {
   @MessagePattern(KillServerRequestedEvent.name)
   async KillServerRequestedEvent(query: KillServerRequestedEvent) {
     return this.ebus.publish(construct(KillServerRequestedEvent, query));
+  }
+
+  @MessagePattern(RunRconCommand.name)
+  async RunRconCommand(query: RunRconCommand): Promise<RunRconResponse> {
+    return this.cbus.execute(construct(RunRconCommand, query));
   }
 
   @Post('/live_match')

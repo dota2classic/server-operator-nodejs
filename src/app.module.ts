@@ -11,6 +11,7 @@ import { S3Module } from 'nestjs-s3';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './configuration';
 import { ReplayService } from './replay.service';
+import { RconService } from './rcon.service';
 
 const EventHandlers = [
   GameServerNotStartedHandler,
@@ -65,6 +66,7 @@ const EventHandlers = [
   providers: [
     AppService,
     ReplayService,
+    RconService,
     ...EventHandlers,
     // outerQuery(GameServerDiscoveredEvent, 'QueryCore', qCache()),
   ],
