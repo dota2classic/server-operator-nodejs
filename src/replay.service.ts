@@ -90,6 +90,9 @@ export class ReplayService {
       );
       const replays = await fs.promises.readdir(rootFolder);
       for (let replay of replays) {
+        const lstat = await fs.promises.lstat(path.join(rootFolder, replay));
+        if (lstat.isDirectory()) continue;
+
         const id = parseInt(replay.split('.')[0]);
         if (unsafeMatchIds.includes(id)) {
           this.logger.verbose(`Skipping upload for match: game in progress`, {
