@@ -33,7 +33,7 @@ export interface ServerConfiguration {
 export class AppService
   implements OnApplicationShutdown, OnApplicationBootstrap
 {
-  public config: Record<string, ServerConfiguration>;
+  public config!: Record<string, ServerConfiguration>;
   private pingServer: http.Server;
 
   private logger = new Logger(AppService.name);

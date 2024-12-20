@@ -12,11 +12,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './configuration';
 import { ReplayService } from './replay.service';
 import { RconService } from './rcon.service';
+import { RunRconHandler } from './operator/command/run-rcon.handler';
 
 const EventHandlers = [
   GameServerNotStartedHandler,
   LaunchGameServerCommandHandler,
   KillServerRequestedEventHandler,
+  RunRconHandler,
 ];
 
 @Module({
