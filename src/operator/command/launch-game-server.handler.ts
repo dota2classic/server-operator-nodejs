@@ -67,32 +67,6 @@ export class LaunchGameServerCommandHandler
     }
   }
 
-  private getGameMode(mode: MatchmakingMode, version: Dota2Version) {
-    switch (mode) {
-      case MatchmakingMode.RANKED:
-        return version == Dota2Version.Dota_681
-          ? Dota_GameMode.ALLPICK
-          : Dota_GameMode.RANKED_AP;
-      case MatchmakingMode.UNRANKED:
-        return Dota_GameMode.RANKED_AP;
-      case MatchmakingMode.SOLOMID:
-        return Dota_GameMode.SOLOMID;
-      case MatchmakingMode.TOURNAMENT_SOLOMID:
-        return Dota_GameMode.SOLOMID;
-      case MatchmakingMode.DIRETIDE:
-        return Dota_GameMode.DIRETIDE;
-      case MatchmakingMode.GREEVILING:
-        return Dota_GameMode.GREEVILING;
-      case MatchmakingMode.ABILITY_DRAFT:
-        return Dota_GameMode.ABILITY_DRAFT;
-      case MatchmakingMode.TOURNAMENT:
-        return Dota_GameMode.CAPTAINS_MODE;
-      case MatchmakingMode.CAPTAINS_MODE:
-        return Dota_GameMode.CAPTAINS_MODE;
-      default:
-        return Dota_GameMode.ALLPICK;
-    }
-  }
 
   private async runDedicatedWindows(rootPath: string, args: string) {
     const batCmd = `
@@ -152,7 +126,7 @@ export class LaunchGameServerCommandHandler
     info: GSMatchInfo,
     matchId: number,
   ) {
-    const map = 'dota';
+    const map = info.map;
     const gameMode = info.gameMode;
 
     const clConfig: CommandLineConfig = {
