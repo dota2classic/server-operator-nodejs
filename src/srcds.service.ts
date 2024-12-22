@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ServerConfiguration } from './app.service';
 import { Dota2Version } from './gateway/shared-types/dota2version';
@@ -9,6 +9,8 @@ import { EventBus } from '@nestjs/cqrs';
 // Allocate servers according to config
 @Injectable()
 export class SrcdsService {
+  private logger = new Logger(SrcdsService.name);
+
   public pool = new Map<string, ServerConfiguration>();
 
   constructor(
@@ -31,6 +33,8 @@ export class SrcdsService {
         path: rootFolder,
       } satisfies ServerConfiguration);
     }
+
+    this.logger.log(`Initialized ${this.pool.size} servers`);
   }
 
   @Cron('*/5 * * * * *')
