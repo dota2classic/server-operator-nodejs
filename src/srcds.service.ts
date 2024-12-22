@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ServerConfiguration } from './app.service';
 import { Dota2Version } from './gateway/shared-types/dota2version';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { GameServerDiscoveredEvent } from './gateway/events/game-server-discovered.event';
 import { EventBus } from '@nestjs/cqrs';
 
@@ -38,9 +38,9 @@ export class SrcdsService {
     this.logger.log(Object.fromEntries(this.pool));
   }
 
-  @Cron('*/5 * * * * *')
+  @Cron(CronExpression.EVERY_5_SECONDS)
   handleCron() {
-    Object.values(this.pool).forEach((configuration) => {
+    Array.from(this.pool.values()).forEach((configuration) => {
       this.ebus.publish(
         new GameServerDiscoveredEvent(configuration.url, configuration.version),
       );
