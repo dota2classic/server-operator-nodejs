@@ -8,7 +8,7 @@ export class WinstonWrapper implements LoggerService {
   private winstonInstance: winston.Logger;
 
   constructor(host: string, port: number = 24224, disabled = false) {
-    const fluentLogger = fluent.createFluentSender('api-gateway', {
+    const fluentLogger = fluent.createFluentSender('gameserver ', {
       host: host,
       port: port,
       timeout: 3.0,
