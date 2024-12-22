@@ -35,6 +35,7 @@ export class SrcdsService {
     }
 
     this.logger.log(`Initialized ${this.pool.size} servers`);
+    this.logger.log(Object.fromEntries(this.pool));
   }
 
   @Cron('*/5 * * * * *')
