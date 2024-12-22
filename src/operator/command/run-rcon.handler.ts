@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import { RunRconCommand } from '../../gateway/commands/RunRcon/run-rcon.command';
 import { RunRconResponse } from '../../gateway/commands/RunRcon/run-rcon.response';
 import { RconService } from '../../rcon.service';
-import { AppService } from '../../app.service';
+import { SrcdsService } from '../../srcds.service';
 
 @CommandHandler(RunRconCommand)
 export class RunRconHandler implements ICommandHandler<RunRconCommand> {
@@ -11,14 +11,12 @@ export class RunRconHandler implements ICommandHandler<RunRconCommand> {
 
   constructor(
     private readonly rconService: RconService,
-    private readonly appService: AppService,
+    private readonly srcdsService: SrcdsService,
   ) {}
 
   async execute(command: RunRconCommand): Promise<RunRconResponse> {
-    const isLocalServer = Object.values(this.appService.config).find(
-      (it) => it.url === command.serverUrl,
-    );
-    if (!isLocalServer) return;
+    if (!this.srcdsService.getServer(command.serverUrl)) return;
+
     this.logger.log('Running RCON command', {
       command: command.command,
       server: command.serverUrl,

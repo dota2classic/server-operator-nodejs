@@ -13,6 +13,7 @@ import configuration from './configuration';
 import { ReplayService } from './replay.service';
 import { RconService } from './rcon.service';
 import { RunRconHandler } from './operator/command/run-rcon.handler';
+import { SrcdsService } from './srcds.service';
 
 const EventHandlers = [
   GameServerNotStartedHandler,
@@ -69,6 +70,7 @@ const EventHandlers = [
     AppService,
     ReplayService,
     RconService,
+    SrcdsService,
     ...EventHandlers,
     // outerQuery(GameServerDiscoveredEvent, 'QueryCore', qCache()),
   ],

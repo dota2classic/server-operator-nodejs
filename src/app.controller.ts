@@ -26,7 +26,7 @@ import { MatchFailedEvent } from './gateway/events/match-failed.event';
 import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
 import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.event';
 import { PlayerConnectedEvent } from './gateway/events/srcds/player-connected.event';
-import { ReplayService } from './replay.service';
+import { SrcdsService } from './srcds.service';
 
 @Controller()
 export class AppController {
@@ -34,9 +34,9 @@ export class AppController {
 
   constructor(
     private readonly appService: AppService,
+    private readonly srcdsService: SrcdsService,
     private readonly cbus: CommandBus,
     private readonly ebus: EventBus,
-    private readonly replayService: ReplayService,
   ) {}
 
   @MessagePattern(LaunchGameServerCommand.name)
@@ -232,7 +232,7 @@ export class AppController {
     });
 
     try {
-      await fillAdditionalData(g, this.appService.config[g.server]);
+      await fillAdditionalData(g, this.srcdsService.getServer(g.server));
     } catch (e) {
       this.logger.error('Failed to fill data from log file', {
         error: e,

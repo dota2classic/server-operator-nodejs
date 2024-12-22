@@ -5,15 +5,13 @@ import {
   LaunchGameServerCommand,
 } from 'src/gateway/commands/LaunchGameServer/launch-game-server.command';
 import { spawn } from 'child_process';
-import { AppService, ServerConfiguration } from 'src/app.service';
+import { ServerConfiguration } from 'src/app.service';
 import * as path from 'path';
-import { MatchmakingMode } from 'src/gateway/shared-types/matchmaking-mode';
-import { Dota2Version } from 'src/gateway/shared-types/dota2version';
-import { Dota_GameMode } from 'src/gateway/shared-types/dota-game-mode';
 import { isServerRunning } from 'src/util/rcon';
 import { LaunchGameServerResponse } from 'src/gateway/commands/LaunchGameServer/launch-game-server.response';
 import * as fs from 'fs';
 import { ConfigService } from '@nestjs/config';
+import { SrcdsService } from '../../srcds.service';
 
 export interface CommandLineConfig {
   url: string;
@@ -28,12 +26,12 @@ export class LaunchGameServerCommandHandler
   private readonly logger = new Logger(LaunchGameServerCommand.name);
 
   constructor(
-    private readonly appService: AppService,
+    private readonly srcdsService: SrcdsService,
     private readonly config: ConfigService,
   ) {}
 
   async execute(command: LaunchGameServerCommand) {
-    const server = this.appService.config[command.url];
+    const server = this.srcdsService.getServer(command.url);
     if (!server) {
       this.logger.verbose('Skipping launch command: not my server', {
         server_url: command.url,
@@ -66,7 +64,6 @@ export class LaunchGameServerCommandHandler
         return 'srcds.sh';
     }
   }
-
 
   private async runDedicatedWindows(rootPath: string, args: string) {
     const batCmd = `

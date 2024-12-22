@@ -6,9 +6,7 @@ import {
   OnApplicationShutdown,
 } from '@nestjs/common';
 import { EventBus, ofType } from '@nestjs/cqrs';
-import { Cron } from '@nestjs/schedule';
 import { GameServerDiscoveredEvent } from './gateway/events/game-server-discovered.event';
-import * as fs from 'fs';
 import { Dota2Version } from './gateway/shared-types/dota2version';
 import { ClientProxy } from '@nestjs/microservices';
 import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
@@ -25,15 +23,12 @@ export interface ServerConfiguration {
   port: number;
   url: string;
   version: Dota2Version;
-  down_for: number;
-  down_since: number;
 }
 
 @Injectable()
 export class AppService
   implements OnApplicationShutdown, OnApplicationBootstrap
 {
-  public config!: Record<string, ServerConfiguration>;
   private pingServer: http.Server;
 
   private logger = new Logger(AppService.name);
@@ -41,7 +36,6 @@ export class AppService
     private readonly ebus: EventBus,
     @Inject('QueryCore') private readonly redisEventQueue: ClientProxy,
   ) {
-    this.config = JSON.parse(fs.readFileSync('serverlist.json').toString());
     this.pingServer = this.createExpressEchoServer();
   }
 
@@ -54,15 +48,6 @@ export class AppService
 
     return app.listen(port, () => {
       console.log(`Example app listening on port ${port}`);
-    });
-  }
-
-  @Cron('*/5 * * * * *')
-  handleCron() {
-    Object.values(this.config).forEach((configuration) => {
-      this.ebus.publish(
-        new GameServerDiscoveredEvent(configuration.url, configuration.version),
-      );
     });
   }
 
