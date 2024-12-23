@@ -49,7 +49,7 @@ async function bootstrap() {
     },
   });
 
-  await app.listen(7777 + Math.floor(Math.random() * 5));
+  await app.listen(7777);
   await app.startAllMicroservices();
 
   new Logger('ServerOperator').log('Server operator launched.');
