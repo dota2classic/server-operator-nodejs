@@ -21,8 +21,16 @@ async function bootstrap() {
   app.connectMicroservice<RmqOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://localhost:5672'],
-      queue: 'start_srcds_queue',
+      urls: [
+        {
+          hostname: config.get<string>('rabbitmq.host'),
+          port: config.get<number>('rabbitmq.port'),
+          protocol: 'amqp',
+          username: config.get<string>('rabbitmq.user'),
+          password: config.get<string>('rabbitmq.password'),
+        },
+      ],
+      queue: config.get<string>('rabbitmq.queue'),
       noAck: false,
       queueOptions: {
         durable: true,

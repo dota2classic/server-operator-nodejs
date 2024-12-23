@@ -1,10 +1,14 @@
 services:
-  rabbitmq:
-    #    image: rabbitmq:4.0-alpine
-    image: rabbitmq:management
-    ports:
-      - 5672:5672
-      - "0.0.0.0:15672:15672"
+  #  rabbitmq:
+  #    image: rabbitmq:management
+  ##    volumes:
+  ##      - "./data:/var/lib/rabbitmq/mnesia/"
+  ##    environment:
+  ##      - RABBITMQ_DEFAULT_USER=itachi
+  ##      - RABBITMQ_DEFAULT_PASS=j#AP0M6J6Z4
+  #    ports:
+  #      - 5672:5672
+  #      - "0.0.0.0:15672:15672"
   redis:
     container_name: redis
     image: redis:7.4.0-alpine

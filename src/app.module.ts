@@ -14,6 +14,7 @@ import { ReplayService } from './replay.service';
 import { RconService } from './rcon.service';
 import { RunRconHandler } from './operator/command/run-rcon.handler';
 import { SrcdsService } from './srcds.service';
+import { RmqOptions } from '@nestjs/microservices/interfaces/microservice-configuration.interface';
 
 const EventHandlers = [
   GameServerNotStartedHandler,
@@ -30,18 +31,32 @@ const EventHandlers = [
       isGlobal: true,
     }),
     ScheduleModule.forRoot(),
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
         name: 'RMQ',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'start_srcds_queue',
-          queueOptions: {
-            durable: true,
-          },
-          prefetchCount: 5,
+        useFactory(config: ConfigService): RmqOptions {
+          return {
+            transport: Transport.RMQ,
+            options: {
+              urls: [
+                {
+                  hostname: config.get<string>('rabbitmq.host'),
+                  port: config.get<number>('rabbitmq.port'),
+                  protocol: 'amqp',
+                  username: config.get<string>('rabbitmq.user'),
+                  password: config.get<string>('rabbitmq.password'),
+                },
+              ],
+              queue: config.get<string>('rabbitmq.queue'),
+              queueOptions: {
+                durable: true,
+              },
+              prefetchCount: 5,
+            },
+          };
         },
+        inject: [ConfigService],
+        imports: [],
       },
     ]),
     ClientsModule.registerAsync([
