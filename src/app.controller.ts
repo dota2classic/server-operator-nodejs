@@ -7,7 +7,6 @@ import {
 } from '@nestjs/microservices';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { LaunchGameServerCommand } from './gateway/commands/LaunchGameServer/launch-game-server.command';
-import { LaunchGameServerResponse } from './gateway/commands/LaunchGameServer/launch-game-server.response';
 import { RunRconCommand } from './gateway/commands/RunRcon/run-rcon.command';
 import { RunRconResponse } from './gateway/commands/RunRcon/run-rcon.response';
 import { construct } from './gateway/util/construct';
@@ -44,7 +43,7 @@ export class AppController {
     private readonly ebus: EventBus,
   ) {}
 
-  @MessagePattern('run_srcds')
+  @MessagePattern(LaunchGameServerCommand.name)
   async runSrcdsForGame(
     @Payload() data: LaunchGameServerCommand,
     @Ctx() context: RmqContext,
@@ -72,12 +71,12 @@ export class AppController {
     );
   }
 
-  @MessagePattern(LaunchGameServerCommand.name)
-  async LaunchGameServerCommand(
-    query: LaunchGameServerCommand,
-  ): Promise<LaunchGameServerResponse> {
-    return this.cbus.execute(construct(LaunchGameServerCommand, query));
-  }
+  // @MessagePattern(LaunchGameServerCommand.name)
+  // async LaunchGameServerCommand(
+  //   query: LaunchGameServerCommand,
+  // ): Promise<LaunchGameServerResponse> {
+  //   return this.cbus.execute(construct(LaunchGameServerCommand, query));
+  // }
 
   @MessagePattern(ServerActualizationRequestedEvent.name)
   async ServerActualizationRequestedEvent(
