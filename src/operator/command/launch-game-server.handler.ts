@@ -12,6 +12,7 @@ import { LaunchGameServerResponse } from 'src/gateway/commands/LaunchGameServer/
 import * as fs from 'fs';
 import { ConfigService } from '@nestjs/config';
 import { SrcdsService } from '../../srcds.service';
+import { RuntimeException } from '@nestjs/core/errors/exceptions';
 
 export interface CommandLineConfig {
   url: string;
@@ -37,7 +38,8 @@ export class LaunchGameServerCommandHandler
         server_url: command.url,
         match_id: command.matchId,
       });
-      return undefined;
+      throw new RuntimeException('Not mine server, dont @ me');
+      // return undefined;
     }
 
     if (await isServerRunning(server.url)) {
