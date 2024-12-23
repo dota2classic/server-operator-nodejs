@@ -8,7 +8,7 @@ import {
 import { EventBus, ofType } from '@nestjs/cqrs';
 import { GameServerDiscoveredEvent } from './gateway/events/game-server-discovered.event';
 import { Dota2Version } from './gateway/shared-types/dota2version';
-import { ClientProxy, ClientRMQ } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 import { GameResultsEvent } from './gateway/events/gs/game-results.event';
@@ -35,7 +35,6 @@ export class AppService
   constructor(
     private readonly ebus: EventBus,
     @Inject('QueryCore') private readonly redisEventQueue: ClientProxy,
-    @Inject('RMQ') private readonly rmq: ClientRMQ,
   ) {}
 
   async onApplicationBootstrap() {
