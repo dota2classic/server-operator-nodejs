@@ -56,16 +56,6 @@ export class AppService
     this.ebus
       .pipe(ofType(...publicEvents))
       .subscribe((t) => this.redisEventQueue.emit(t.constructor.name, t));
-
-    // await new Promise(resolve => setTimeout(resolve, 1000));
-
-    await this.rmq.connect();
-
-    console.log('Before:');
-
-    return;
-
-    // console.log(some);
   }
 
   onApplicationShutdown(signal?: string): any {
