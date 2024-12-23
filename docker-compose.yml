@@ -1,0 +1,17 @@
+services:
+  rabbitmq:
+    #    image: rabbitmq:4.0-alpine
+    image: rabbitmq:management
+    ports:
+      - 5672:5672
+      - "0.0.0.0:15672:15672"
+  redis:
+    container_name: redis
+    image: redis:7.4.0-alpine
+    restart: always
+    command: [ redis-server, /usr/local/etc/redis/redis.conf ]
+
+    ports:
+      - "0.0.0.0:6379:6379"
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf

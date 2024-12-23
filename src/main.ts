@@ -5,6 +5,7 @@ import { WinstonWrapper } from './util/logger';
 import { ConfigService } from '@nestjs/config';
 import configuration from './configuration';
 import { Logger } from '@nestjs/common';
+import { RmqOptions } from '@nestjs/microservices/interfaces/microservice-configuration.interface';
 
 async function bootstrap() {
   const config = new ConfigService(configuration());
@@ -15,6 +16,18 @@ async function bootstrap() {
       config.get('fluentbit.port'),
       config.get('fluentbit.disabled'),
     ),
+  });
+
+  app.connectMicroservice<RmqOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: ['amqp://localhost:5672'],
+      queue: 'start_srcds_queue',
+      noAck: false,
+      queueOptions: {
+        durable: true,
+      },
+    },
   });
 
   app.connectMicroservice({
@@ -28,7 +41,7 @@ async function bootstrap() {
     },
   });
 
-  await app.listen(7777);
+  await app.listen(7777 + Math.floor(Math.random() * 5));
   await app.startAllMicroservices();
 
   new Logger('ServerOperator').log('Server operator launched.');

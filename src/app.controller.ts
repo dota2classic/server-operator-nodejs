@@ -1,6 +1,10 @@
-import { Body, Controller, Get, Logger, Post } from '@nestjs/common';
-import { AppService } from './app.service';
-import { MessagePattern } from '@nestjs/microservices';
+import { Body, Controller, Logger, Post } from '@nestjs/common';
+import {
+  Ctx,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from '@nestjs/microservices';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { LaunchGameServerCommand } from './gateway/commands/LaunchGameServer/launch-game-server.command';
 import { LaunchGameServerResponse } from './gateway/commands/LaunchGameServer/launch-game-server.response';
@@ -27,17 +31,46 @@ import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
 import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.event';
 import { PlayerConnectedEvent } from './gateway/events/srcds/player-connected.event';
 import { SrcdsService } from './srcds.service';
+import { SrcdsServerStartedEvent } from './gateway/events/srcds-server-started.event';
+import { LaunchGameServerNewResponse } from './operator/command/launch-game-server-new.response';
 
 @Controller()
 export class AppController {
   private readonly logger = new Logger('AppController');
 
   constructor(
-    private readonly appService: AppService,
     private readonly srcdsService: SrcdsService,
     private readonly cbus: CommandBus,
     private readonly ebus: EventBus,
   ) {}
+
+  @MessagePattern('run_srcds')
+  async runSrcdsForGame(
+    @Payload() data: LaunchGameServerCommand,
+    @Ctx() context: RmqContext,
+  ) {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+
+    const result = await this.cbus.execute<
+      LaunchGameServerCommand,
+      LaunchGameServerNewResponse
+    >(construct(LaunchGameServerCommand, data));
+    if (!result.server) {
+      this.logger.log('Nacked run command for match', {
+        match_id: data.matchId,
+      });
+      channel.nack(originalMsg);
+      return;
+    }
+
+    this.logger.log('Acked run command for match', { match_id: data.matchId });
+    channel.ack(originalMsg);
+
+    await this.ebus.publish(
+      new SrcdsServerStartedEvent(result.server, data.matchId, data.info),
+    );
+  }
 
   @MessagePattern(LaunchGameServerCommand.name)
   async LaunchGameServerCommand(
@@ -243,10 +276,5 @@ export class AppController {
     this.ebus.publish(g);
 
     return 200;
-  }
-
-  @Get('/alkjsfdasklfaskld')
-  async debugshit() {
-    // await this.replayService.uploadAllReplays();
   }
 }

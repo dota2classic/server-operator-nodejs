@@ -7,12 +7,10 @@ import {
 import { spawn } from 'child_process';
 import { ServerConfiguration } from 'src/app.service';
 import * as path from 'path';
-import { isServerRunning } from 'src/util/rcon';
-import { LaunchGameServerResponse } from 'src/gateway/commands/LaunchGameServer/launch-game-server.response';
 import * as fs from 'fs';
 import { ConfigService } from '@nestjs/config';
 import { SrcdsService } from '../../srcds.service';
-import { RuntimeException } from '@nestjs/core/errors/exceptions';
+import { LaunchGameServerNewResponse } from './launch-game-server-new.response';
 
 export interface CommandLineConfig {
   url: string;
@@ -22,7 +20,8 @@ export interface CommandLineConfig {
 
 @CommandHandler(LaunchGameServerCommand)
 export class LaunchGameServerCommandHandler
-  implements ICommandHandler<LaunchGameServerCommand, LaunchGameServerResponse>
+  implements
+    ICommandHandler<LaunchGameServerCommand, LaunchGameServerNewResponse>
 {
   private readonly logger = new Logger(LaunchGameServerCommand.name);
 
@@ -32,30 +31,21 @@ export class LaunchGameServerCommandHandler
   ) {}
 
   async execute(command: LaunchGameServerCommand) {
-    const server = this.srcdsService.getServer(command.url);
-    if (!server) {
-      this.logger.verbose('Skipping launch command: not my server', {
-        server_url: command.url,
-        match_id: command.matchId,
-      });
-      throw new RuntimeException('Not mine server, dont @ me');
-      // return undefined;
-    }
+    const freeServer = await this.srcdsService.getFreeServer();
 
-    if (await isServerRunning(server.url)) {
-      this.logger.log('Server is already running', {
-        server_url: command.url,
+    if (!freeServer) {
+      this.logger.log('No free server here', {
         match_id: command.matchId,
       });
-      return new LaunchGameServerResponse(false);
+      return new LaunchGameServerNewResponse(undefined);
     }
 
     this.logger.log('Server is free', {
-      server_url: command.url,
+      server_url: freeServer.url,
       match_id: command.matchId,
     });
 
-    return this.runDedicatedServer(server, command.info, command.matchId);
+    return this.runDedicatedServer(freeServer, command.info, command.matchId);
   }
 
   private getSrcdsExecutable() {
@@ -193,6 +183,6 @@ export class LaunchGameServerCommandHandler
     // Wait here 2 seconds so server is surely started
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    return new LaunchGameServerResponse(true);
+    return new LaunchGameServerNewResponse(server.url);
   }
 }

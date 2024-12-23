@@ -30,6 +30,20 @@ const EventHandlers = [
       isGlobal: true,
     }),
     ScheduleModule.forRoot(),
+    ClientsModule.register([
+      {
+        name: 'RMQ',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'start_srcds_queue',
+          queueOptions: {
+            durable: true,
+          },
+          prefetchCount: 5,
+        },
+      },
+    ]),
     ClientsModule.registerAsync([
       {
         name: 'QueryCore',
