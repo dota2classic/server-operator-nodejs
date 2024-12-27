@@ -61,7 +61,8 @@ export interface PlayerAbandonOnSRCDS {
   server: string;
 }
 
-export interface PlayerIpTag {
+export interface PlayerIpTagSRCDS {
+  match_id: number;
   steam_id: number;
   ip: string;
 }

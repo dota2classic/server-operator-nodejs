@@ -18,7 +18,7 @@ import {
   MatchFinishedOnSRCDS,
   PlayerAbandonOnSRCDS,
   PlayerConnectedOnSRCDS,
-  PlayerIpTag,
+  PlayerIpTagSRCDS,
 } from './operator/dto';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 import { itemIdByName } from './gateway/constants/items';
@@ -198,12 +198,15 @@ export class AppController {
   }
 
   @Post('/player_ip_tag')
-  async playerIpTag(@Body() d: PlayerIpTag) {
+  async playerIpTag(@Body() d: PlayerIpTagSRCDS) {
     this.logger.log('Player ip tag', {
+      match_id: d.match_id,
       steam_id: d.steam_id,
       ip: d.ip,
     });
-    await this.ebus.publish(new PlayerIpTagEvent(d.steam_id.toString(), d.ip));
+    await this.ebus.publish(
+      new PlayerIpTagEvent(d.match_id, d.steam_id.toString(), d.ip),
+    );
   }
 
   @Post('/player_connect')
