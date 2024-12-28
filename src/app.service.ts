@@ -17,7 +17,6 @@ import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.eve
 import * as http from 'http';
 import { PlayerConnectedEvent } from './gateway/events/srcds/player-connected.event';
 import { SrcdsServerStartedEvent } from './gateway/events/srcds-server-started.event';
-import { PlayerIpTagEvent } from './gateway/events/srcds/player-ip-tag.event';
 
 export interface ServerConfiguration {
   path: string;
@@ -52,7 +51,6 @@ export class AppService
       PlayerAbandonedEvent,
       PlayerConnectedEvent,
       SrcdsServerStartedEvent,
-      PlayerIpTagEvent,
     ];
 
     this.ebus

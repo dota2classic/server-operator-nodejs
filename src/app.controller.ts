@@ -18,7 +18,6 @@ import {
   MatchFinishedOnSRCDS,
   PlayerAbandonOnSRCDS,
   PlayerConnectedOnSRCDS,
-  PlayerIpTagSRCDS,
 } from './operator/dto';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 import { itemIdByName } from './gateway/constants/items';
@@ -33,7 +32,6 @@ import { PlayerConnectedEvent } from './gateway/events/srcds/player-connected.ev
 import { SrcdsService } from './srcds.service';
 import { SrcdsServerStartedEvent } from './gateway/events/srcds-server-started.event';
 import { LaunchGameServerNewResponse } from './operator/command/launch-game-server-new.response';
-import { PlayerIpTagEvent } from './gateway/events/srcds/player-ip-tag.event';
 
 @Controller()
 export class AppController {
@@ -197,30 +195,20 @@ export class AppController {
     );
   }
 
-  @Post('/player_ip_tag')
-  async playerIpTag(@Body() d: PlayerIpTagSRCDS) {
-    this.logger.log('Player ip tag', {
-      match_id: d.match_id,
-      steam_id: d.steam_id,
-      ip: d.ip,
-    });
-    await this.ebus.publish(
-      new PlayerIpTagEvent(d.match_id, d.steam_id.toString(), d.ip),
-    );
-  }
-
   @Post('/player_connect')
   async playerConnect(@Body() d: PlayerConnectedOnSRCDS) {
     this.logger.log('Player connected', {
       match_id: d.match_id,
       steam_id: d.steam_id,
       server: d.server,
+      ip: d.ip,
     });
     await this.ebus.publish(
       new PlayerConnectedEvent(
         new PlayerId(d.steam_id.toString()),
         d.match_id,
         d.server,
+        d.ip,
       ),
     );
   }
