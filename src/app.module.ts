@@ -14,6 +14,9 @@ import { ReplayService } from './replay.service';
 import { RconService } from './rcon.service';
 import { RunRconHandler } from './operator/command/run-rcon.handler';
 import { SrcdsService } from './srcds.service';
+import { RmqOptions } from '@nestjs/microservices/interfaces/microservice-configuration.interface';
+import { MatchStatusService } from './match-status.service';
+import { EventsController } from './events.controller';
 
 const EventHandlers = [
   GameServerNotStartedHandler,
@@ -46,6 +49,34 @@ const EventHandlers = [
         imports: [],
       },
     ]),
+    ClientsModule.registerAsync([
+      {
+        name: 'RMQ',
+        useFactory(config: ConfigService): RmqOptions {
+          return {
+            transport: Transport.RMQ,
+            options: {
+              urls: [
+                {
+                  hostname: config.get<string>('rabbitmq.host'),
+                  port: config.get<number>('rabbitmq.port'),
+                  protocol: 'amqp',
+                  username: config.get<string>('rabbitmq.user'),
+                  password: config.get<string>('rabbitmq.password'),
+                },
+              ],
+              queue: config.get<string>('rabbitmq.srcds_events'),
+              queueOptions: {
+                durable: true,
+              },
+              prefetchCount: 5,
+            },
+          };
+        },
+        inject: [ConfigService],
+        imports: [],
+      },
+    ]),
     S3Module.forRootAsync({
       useFactory(config: ConfigService) {
         return {
@@ -65,14 +96,14 @@ const EventHandlers = [
       imports: [],
     }),
   ],
-  controllers: [AppController],
+  controllers: [AppController, EventsController],
   providers: [
     AppService,
     ReplayService,
     RconService,
     SrcdsService,
+    MatchStatusService,
     ...EventHandlers,
-    // outerQuery(GameServerDiscoveredEvent, 'QueryCore', qCache()),
   ],
 })
 export class AppModule {}

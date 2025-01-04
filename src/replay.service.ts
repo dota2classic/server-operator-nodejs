@@ -10,7 +10,6 @@ import { getRunningSrcds } from './util/processes';
 @Injectable()
 export class ReplayService {
   private logger = new Logger(ReplayService.name);
-  private checking: boolean = false;
 
   private procMap = new Map<'logs' | 'replays', boolean>();
 

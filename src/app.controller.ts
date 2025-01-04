@@ -1,17 +1,6 @@
 import { Body, Controller, Logger, Post } from '@nestjs/common';
-import {
-  Ctx,
-  MessagePattern,
-  Payload,
-  RmqContext,
-} from '@nestjs/microservices';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
-import { LaunchGameServerCommand } from './gateway/commands/LaunchGameServer/launch-game-server.command';
-import { RunRconCommand } from './gateway/commands/RunRcon/run-rcon.command';
-import { RunRconResponse } from './gateway/commands/RunRcon/run-rcon.response';
 import { construct } from './gateway/util/construct';
-import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
-import { KillServerRequestedEvent } from './gateway/events/gs/kill-server-requested.event';
 import {
   LiveMatchDto,
   MatchFailedOnSRCDS,
@@ -30,8 +19,7 @@ import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
 import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.event';
 import { PlayerConnectedEvent } from './gateway/events/srcds/player-connected.event';
 import { SrcdsService } from './srcds.service';
-import { SrcdsServerStartedEvent } from './gateway/events/srcds-server-started.event';
-import { LaunchGameServerNewResponse } from './operator/command/launch-game-server-new.response';
+import { MatchStatusService } from './match-status.service';
 
 @Controller()
 export class AppController {
@@ -41,61 +29,8 @@ export class AppController {
     private readonly srcdsService: SrcdsService,
     private readonly cbus: CommandBus,
     private readonly ebus: EventBus,
+    private readonly matchStatusService: MatchStatusService,
   ) {}
-
-  @MessagePattern(LaunchGameServerCommand.name)
-  async runSrcdsForGame(
-    @Payload() data: LaunchGameServerCommand,
-    @Ctx() context: RmqContext,
-  ) {
-    const channel = context.getChannelRef();
-    const originalMsg = context.getMessage();
-
-    const result = await this.cbus.execute<
-      LaunchGameServerCommand,
-      LaunchGameServerNewResponse
-    >(construct(LaunchGameServerCommand, data));
-    if (!result.server) {
-      this.logger.log('Nacked run command for match', {
-        match_id: data.matchId,
-      });
-      channel.nack(originalMsg);
-      return;
-    }
-
-    this.logger.log('Acked run command for match', { match_id: data.matchId });
-    channel.ack(originalMsg);
-
-    await this.ebus.publish(
-      new SrcdsServerStartedEvent(result.server, data.matchId, data.info),
-    );
-  }
-
-  // @MessagePattern(LaunchGameServerCommand.name)
-  // async LaunchGameServerCommand(
-  //   query: LaunchGameServerCommand,
-  // ): Promise<LaunchGameServerResponse> {
-  //   return this.cbus.execute(construct(LaunchGameServerCommand, query));
-  // }
-
-  @MessagePattern(ServerActualizationRequestedEvent.name)
-  async ServerActualizationRequestedEvent(
-    query: ServerActualizationRequestedEvent,
-  ) {
-    return this.ebus.publish(
-      construct(ServerActualizationRequestedEvent, query),
-    );
-  }
-
-  @MessagePattern(KillServerRequestedEvent.name)
-  async KillServerRequestedEvent(query: KillServerRequestedEvent) {
-    return this.ebus.publish(construct(KillServerRequestedEvent, query));
-  }
-
-  @MessagePattern(RunRconCommand.name)
-  async RunRconCommand(query: RunRconCommand): Promise<RunRconResponse> {
-    return this.cbus.execute(construct(RunRconCommand, query));
-  }
 
   @Post('/live_match')
   findAll(@Body() it: LiveMatchDto): string {
@@ -163,7 +98,7 @@ export class AppController {
       (t) => t.connection === DotaConnectionState.DOTA_CONNECTION_STATE_FAILED,
     );
     if (failedPlayers.length > 0) {
-      this.ebus.publish(
+      this.matchStatusService.matchFailed(
         new MatchFailedEvent(
           d.match_id,
           d.server,
@@ -185,7 +120,7 @@ export class AppController {
       server: d.server,
       abandon_index: d.abandon_index,
     });
-    await this.ebus.publish(
+    this.matchStatusService.playerAbandon(
       new PlayerAbandonedEvent(
         new PlayerId(d.steam_id.toString()),
         d.match_id,
@@ -274,7 +209,7 @@ export class AppController {
       });
     }
 
-    this.ebus.publish(g);
+    this.matchStatusService.matchResults(g);
 
     return 200;
   }

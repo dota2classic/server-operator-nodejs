@@ -11,12 +11,10 @@ import { Dota2Version } from './gateway/shared-types/dota2version';
 import { ClientProxy } from '@nestjs/microservices';
 import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
-import { GameResultsEvent } from './gateway/events/gs/game-results.event';
-import { MatchFailedEvent } from './gateway/events/match-failed.event';
-import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.event';
 import * as http from 'http';
 import { PlayerConnectedEvent } from './gateway/events/srcds/player-connected.event';
 import { SrcdsServerStartedEvent } from './gateway/events/srcds-server-started.event';
+import { MatchStatusService } from './match-status.service';
 
 export interface ServerConfiguration {
   path: string;
@@ -35,6 +33,7 @@ export class AppService
   constructor(
     private readonly ebus: EventBus,
     @Inject('QueryCore') private readonly redisEventQueue: ClientProxy,
+    private readonly ms: MatchStatusService,
   ) {}
 
   async onApplicationBootstrap() {
@@ -46,9 +45,6 @@ export class AppService
       GameServerDiscoveredEvent,
       ServerStatusEvent,
       LiveMatchUpdateEvent,
-      MatchFailedEvent,
-      GameResultsEvent,
-      PlayerAbandonedEvent,
       PlayerConnectedEvent,
       SrcdsServerStartedEvent,
     ];
