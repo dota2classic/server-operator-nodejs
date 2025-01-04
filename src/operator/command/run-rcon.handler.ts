@@ -15,7 +15,12 @@ export class RunRconHandler implements ICommandHandler<RunRconCommand> {
   ) {}
 
   async execute(command: RunRconCommand): Promise<RunRconResponse> {
-    if (!this.srcdsService.getServer(command.serverUrl)) return;
+    if (!this.srcdsService.getServer(command.serverUrl)) {
+      this.logger.warn('Skipping run rcon: not my server', {
+        server_url: command.serverUrl,
+      });
+      return;
+    }
 
     this.logger.log('Running RCON command', {
       command: command.command,
