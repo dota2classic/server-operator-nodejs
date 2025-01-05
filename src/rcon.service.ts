@@ -17,15 +17,19 @@ export class RconService {
         reject(new Error('Timeout'));
       }, timeout);
 
-      const rcon = await Rcon.connect({
-        host: host,
-        port: port,
-        password: this.config.get('srcds.rconPassword'),
-        timeout,
-      });
-      const response = await rcon.send(command);
-      await rcon.end();
-      resolve(response);
+      try {
+        const rcon = await Rcon.connect({
+          host: host,
+          port: port,
+          password: this.config.get('srcds.rconPassword'),
+          timeout,
+        });
+        const response = await rcon.send(command);
+        await rcon.end();
+        resolve(response);
+      } catch (e) {
+        reject(e);
+      }
     });
   }
 }

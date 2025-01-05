@@ -17,6 +17,7 @@ import { SrcdsService } from './srcds.service';
 import { RmqOptions } from '@nestjs/microservices/interfaces/microservice-configuration.interface';
 import { MatchStatusService } from './match-status.service';
 import { EventsController } from './events.controller';
+import { MetricsService } from './metrics.service';
 
 const EventHandlers = [
   GameServerNotStartedHandler,
@@ -103,6 +104,7 @@ const EventHandlers = [
     RconService,
     SrcdsService,
     MatchStatusService,
+    MetricsService,
     ...EventHandlers,
   ],
 })

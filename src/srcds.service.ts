@@ -30,6 +30,7 @@ export class SrcdsService {
       this.pool.set(url, {
         version: Dota2Version.Dota_684,
         url: url,
+        host: host,
         port: port,
         path: rootFolder,
       } satisfies ServerConfiguration);

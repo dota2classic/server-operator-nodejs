@@ -18,6 +18,7 @@ import { MatchStatusService } from './match-status.service';
 
 export interface ServerConfiguration {
   path: string;
+  host: string;
   port: number;
   url: string;
   version: Dota2Version;
