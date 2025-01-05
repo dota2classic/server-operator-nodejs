@@ -8,7 +8,7 @@ describe('parseStatusResponse', () => {
     expect(some).toEqual({
       userid: 2,
       name: 'Fosoroy через атос',
-      uniqueid: `[U:1:126880756]`,
+      uniqueid: `126880756`,
       connected: '28:53',
       ping: 87,
       loss: 0,
@@ -31,7 +31,7 @@ describe('parseStatusResponse', () => {
       {
         userid: 10,
         name: 'Негросучка',
-        uniqueid: `[U:1:1037635443]`,
+        uniqueid: `1037635443`,
         connected: '32:53',
         ping: 71,
         loss: 0,
@@ -42,7 +42,7 @@ describe('parseStatusResponse', () => {
       {
         userid: 11,
         name: 'фея технологий',
-        uniqueid: `[U:1:1175148404]`,
+        uniqueid: `1175148404`,
         connected: '32:43',
         ping: 93,
         loss: 0,
@@ -82,7 +82,7 @@ describe('parseStatusResponse', () => {
       {
         userid: 2,
         name: 'Fosoroy через атос',
-        uniqueid: `[U:1:126880756]`,
+        uniqueid: `126880756`,
         connected: '28:53',
         ping: 87,
         loss: 0,
@@ -93,7 +93,7 @@ describe('parseStatusResponse', () => {
       {
         userid: 3,
         name: 'Mieke',
-        uniqueid: `[U:1:1229265018]`,
+        uniqueid: `1229265018`,
         connected: '28:53',
         ping: 67,
         loss: 0,
@@ -104,7 +104,7 @@ describe('parseStatusResponse', () => {
       {
         userid: 4,
         name: 'pos 5 няшка',
-        uniqueid: `[U:1:314583257]`,
+        uniqueid: `314583257`,
         connected: '28:53',
         ping: 118,
         loss: 0,
@@ -115,7 +115,7 @@ describe('parseStatusResponse', () => {
       {
         userid: 5,
         name: '♿ИГРАЮКАКМОГУ♿',
-        uniqueid: `[U:1:97698090]`,
+        uniqueid: `97698090`,
         connected: '28:53',
         ping: 116,
         loss: 0,
@@ -126,7 +126,7 @@ describe('parseStatusResponse', () => {
       {
         userid: 6,
         name: 'V',
-        uniqueid: `[U:1:253323011]`,
+        uniqueid: `253323011`,
         connected: '28:52',
         ping: 78,
         loss: 0,
@@ -137,7 +137,7 @@ describe('parseStatusResponse', () => {
       {
         userid: 7,
         name: 'GTX 750 TI 2GB',
-        uniqueid: `[U:1:1584469629]`,
+        uniqueid: `1584469629`,
         connected: '28:50',
         ping: 67,
         loss: 0,
@@ -148,7 +148,7 @@ describe('parseStatusResponse', () => {
       {
         userid: 8,
         name: 'чморфлинг',
-        uniqueid: `[U:1:116062527]`,
+        uniqueid: `116062527`,
         connected: '28:50',
         ping: 196,
         loss: 0,
@@ -159,7 +159,7 @@ describe('parseStatusResponse', () => {
       {
         userid: 9,
         name: 'torbasow',
-        uniqueid: `[U:1:148928588]`,
+        uniqueid: `148928588`,
         connected: '27:58',
         ping: 102,
         loss: 0,
@@ -170,7 +170,7 @@ describe('parseStatusResponse', () => {
       {
         userid: 10,
         name: 'zxc',
-        uniqueid: `[U:1:294916479]`,
+        uniqueid: `294916479`,
         connected: '27:52',
         ping: 122,
         loss: 0,
@@ -181,7 +181,7 @@ describe('parseStatusResponse', () => {
       {
         userid: 11,
         name: 'ЕБАНОЕ УЁБИЩЕ',
-        uniqueid: `[U:1:1126848000]`,
+        uniqueid: `1126848000`,
         connected: '18:48',
         ping: 105,
         loss: 0,

@@ -7,10 +7,15 @@ import {
   parseStatsResponse,
   SrcdsServerMetrics,
 } from './util/parseStatsResponse';
-import {
-  parseStatusResponse,
-  SrcdsPlayerMetric,
-} from './util/parseStatusResponse';
+import { parseStatusResponse } from './util/parseStatusResponse';
+
+export interface CleanPlayerMetric {
+  steam_id: string;
+  server: string;
+  ping: number;
+  loss: number;
+  rate: number;
+}
 
 @Injectable()
 export class MetricsService {
@@ -60,10 +65,19 @@ export class MetricsService {
 
   private async collectPlayerMetrics(
     server: ServerConfiguration,
-  ): Promise<SrcdsPlayerMetric[]> {
+  ): Promise<CleanPlayerMetric[]> {
     return await this.rconService
       .executeRcon(server.host, server.port, 'status')
       .then(parseStatusResponse)
+      .then((entries) =>
+        entries.map((raw) => ({
+          steam_id: raw.steam_id,
+          ping: raw.ping,
+          loss: raw.loss,
+          rate: raw.rate,
+          server: server.url,
+        })),
+      )
       .catch(() => []);
   }
 }

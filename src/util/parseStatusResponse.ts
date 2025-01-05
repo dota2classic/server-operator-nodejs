@@ -1,7 +1,7 @@
 export interface SrcdsPlayerMetric {
   userid: number;
   name: string;
-  uniqueid: string;
+  steam_id: string;
   connected: string;
   ping: number;
   loss: number;
@@ -9,6 +9,7 @@ export interface SrcdsPlayerMetric {
   rate: number;
   adr: string;
 }
+
 
 export const parseStatusRow = (row: string): SrcdsPlayerMetric | undefined => {
   const sep = /(?:[^\s"]+|"[^"]*")+/g;
@@ -20,7 +21,7 @@ export const parseStatusRow = (row: string): SrcdsPlayerMetric | undefined => {
   return {
     userid: Number(spaced[2]),
     name: spaced[3].replaceAll('"', ''),
-    uniqueid: spaced[4],
+    steam_id: spaced[4].substring(5, spaced[4].length - 1),
     connected: spaced[5],
     ping: Number(spaced[6]),
     loss: Number(spaced[7]),
