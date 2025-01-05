@@ -15,7 +15,7 @@ export const parseStatusRow = (row: string): SrcdsPlayerMetric | undefined => {
   const spaced = row.match(sep);
 
   // a bot
-  if (spaced.length === 5) return undefined;
+  if (spaced.length < 7) return undefined;
 
   return {
     userid: Number(spaced[2]),
