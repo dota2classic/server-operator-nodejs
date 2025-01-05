@@ -14,7 +14,6 @@ export const parseStatusRow = (row: string): SrcdsPlayerMetric | undefined => {
   const sep = /(?:[^\s"]+|"[^"]*")+/g;
   const spaced = row.match(sep);
 
-  console.log(spaced.length, row, spaced);
   // a bot
   if (spaced.length < 7) return undefined;
 
