@@ -14,6 +14,7 @@ export const parseStatusRow = (row: string): SrcdsPlayerMetric | undefined => {
   const sep = /(?:[^\s"]+|"[^"]*")+/g;
   const spaced = row.match(sep);
 
+  console.log(spaced.length, row, spaced);
   // a bot
   if (spaced.length < 7) return undefined;
 
@@ -32,7 +33,12 @@ export const parseStatusRow = (row: string): SrcdsPlayerMetric | undefined => {
 export const parseStatusResponse = (raw: string): SrcdsPlayerMetric[] => {
   let parts = raw.split('\n');
 
-  parts = parts.slice(10);
+  const indexOfTable = parts.findIndex(
+    (row) =>
+      row.trim() ===
+      '# userid name uniqueid connected ping loss state rate adr',
+  );
+  parts = parts.slice(indexOfTable + 1);
 
   const statuses: SrcdsPlayerMetric[] = [];
   for (let part of parts) {
