@@ -29,20 +29,24 @@ export class MetricsService {
   @Cron(CronExpression.EVERY_5_SECONDS)
   private async collectMetrics() {
     for (let server of Array.from(this.srcdsService.pool.values())) {
-      let serverMetrics: SrcdsServerMetrics =
-        await this.collectServerMetrics(server);
-      this.logger.log({
-        server: `${server.url}`,
-        ...serverMetrics,
-      });
-
-      const playerMetrics = await this.collectPlayerMetrics(server);
-      playerMetrics.forEach((plr) => {
+      try {
+        let serverMetrics: SrcdsServerMetrics =
+          await this.collectServerMetrics(server);
         this.logger.log({
-          server: server.url,
-          ...plr,
+          server: `${server.url}`,
+          ...serverMetrics,
         });
-      });
+
+        const playerMetrics = await this.collectPlayerMetrics(server);
+        playerMetrics.forEach((plr) => {
+          this.logger.log({
+            server: server.url,
+            ...plr,
+          });
+        });
+      } catch (e) {
+        this.logger.error('Error while collecting metrics', e);
+      }
     }
   }
 
