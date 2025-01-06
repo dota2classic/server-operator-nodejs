@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RconService } from './rcon.service';
 import { SrcdsService } from './srcds.service';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { ServerConfiguration } from './app.service';
 import {
   parseStatsResponse,
@@ -26,7 +25,7 @@ export class MetricsService {
     private readonly srcdsService: SrcdsService,
   ) {}
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  // @Cron(CronExpression.EVERY_5_SECONDS)
   private async collectMetrics() {
     for (let server of Array.from(this.srcdsService.pool.values())) {
       try {
