@@ -24,7 +24,14 @@ export class MetricsService {
   constructor(
     private readonly rconService: RconService,
     private readonly srcdsService: SrcdsService,
-  ) {}
+  ) {
+    this.collectServerMetrics({
+      host: `156.253.249.142`,
+      port: 27015,
+    } as any).then((some) => {
+      console.log(some);
+    });
+  }
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   private async collectMetrics() {
