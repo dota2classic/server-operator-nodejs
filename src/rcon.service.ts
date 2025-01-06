@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Rcon } from 'rcon-client';
+// import { Rcon } from 'rcon-client';
+import Rcon from 'rcon-srcds';
 
 @Injectable()
 export class RconService {
@@ -18,15 +19,22 @@ export class RconService {
       }, timeout);
 
       try {
-        const rcon = await Rcon.connect({
+        const rcon = new Rcon({
           host: host,
           port: port,
-          password: this.config.get('srcds.rconPassword'),
           timeout,
         });
-        const response = await rcon.send(command);
-        await rcon.end();
-        resolve(response);
+        const authenticated = await rcon.authenticate(
+          this.config.get('srcds.rconPassword'),
+        );
+        if (!authenticated) {
+          reject(new Error('Wrong rcon password'));
+          return;
+        }
+
+        const response = await rcon.execute(command);
+        await rcon.disconnect();
+        resolve(response.toString());
       } catch (e) {
         reject(e);
       }

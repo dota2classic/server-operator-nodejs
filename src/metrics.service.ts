@@ -7,6 +7,7 @@ import {
   SrcdsServerMetrics,
 } from './util/parseStatsResponse';
 import { parseStatusResponse } from './util/parseStatusResponse';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 export interface CleanPlayerMetric {
   steam_id: string;
@@ -25,7 +26,7 @@ export class MetricsService {
     private readonly srcdsService: SrcdsService,
   ) {}
 
-  // @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_5_SECONDS)
   private async collectMetrics() {
     for (let server of Array.from(this.srcdsService.pool.values())) {
       try {
