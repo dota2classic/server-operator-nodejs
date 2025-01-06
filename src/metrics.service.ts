@@ -32,7 +32,7 @@ export class MetricsService {
       let serverMetrics: SrcdsServerMetrics =
         await this.collectServerMetrics(server);
       this.logger.log({
-        server: `${server.url}:${server.port}`,
+        server: `${server.url}`,
         ...serverMetrics,
       });
 
