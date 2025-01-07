@@ -79,8 +79,6 @@ export class MetricsService {
             playerMetrics.length
           : 0;
 
-        console.log(server.url, avg);
-
         const loss = playerMetrics.length
           ? playerMetrics.map((t) => t.loss).reduce((a, b) => a + b, 0) /
             playerMetrics.length
