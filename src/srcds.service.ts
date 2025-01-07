@@ -5,7 +5,7 @@ import { Dota2Version } from './gateway/shared-types/dota2version';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { GameServerDiscoveredEvent } from './gateway/events/game-server-discovered.event';
 import { EventBus } from '@nestjs/cqrs';
-import { getRunningSrcds } from './util/processes';
+import { getRunningSrcds, SrcdsProcess } from './util/processes';
 
 // Allocate servers according to config
 @Injectable()
@@ -51,6 +51,11 @@ export class SrcdsService {
 
   public getServer(url: string): ServerConfiguration | undefined {
     return this.pool.get(url);
+  }
+
+  public async getSrcdsProcess(url: string): Promise<SrcdsProcess | undefined> {
+    const processes = await getRunningSrcds();
+    return processes.find((proc) => proc.match.url == url);
   }
 
   public async getFreeServer(): Promise<ServerConfiguration | undefined> {

@@ -2,10 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { RconService } from './rcon.service';
 import { SrcdsService } from './srcds.service';
 import { ServerConfiguration } from './app.service';
-import {
-  parseStatsResponse,
-  SrcdsServerMetrics,
-} from './util/parseStatsResponse';
+import { parseStatsResponse, SrcdsServerMetrics } from './util/parseStatsResponse';
 import { parseStatusResponse } from './util/parseStatusResponse';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import * as client from 'prom-client';
@@ -25,22 +22,36 @@ export class MetricsService {
 
   private cpuGauge: Gauge<string>;
   private fpsGauge: Gauge<string>;
+  private pingGauge: Gauge<string>;
+  private lossGauge: Gauge<string>;
 
   constructor(
     private readonly rconService: RconService,
     private readonly srcdsService: SrcdsService,
-    private readonly pushgateway: client.Pushgateway<PrometheusContentType>,
+    private readonly pushgateway: client.Pushgateway<PrometheusContentType>,,
   ) {
     this.cpuGauge = new Gauge<string>({
       name: 'srcds_metrics_cpu',
       help: 'app_concurrent_metrics_help',
-      labelNames: ['server_url', 'state'],
+      labelNames: ['server_url'],
     });
 
     this.fpsGauge = new Gauge<string>({
       name: 'srcds_metrics_fps',
       help: 'app_concurrent_metrics_help',
-      labelNames: ['server_url', 'state'],
+      labelNames: ['server_url'],
+    });
+
+    this.pingGauge = new Gauge<string>({
+      name: 'srcds_metrics_ping',
+      help: 'app_concurrent_metrics_help',
+      labelNames: ['server_url'],
+    });
+
+    this.lossGauge = new Gauge<string>({
+      name: 'srcds_metrics_loss',
+      help: 'app_concurrent_metrics_help',
+      labelNames: ['server_url'],
     });
   }
 
@@ -50,13 +61,33 @@ export class MetricsService {
       try {
         let serverMetrics = await this.collectServerMetrics(server);
 
-        const state = serverMetrics ? 'running' : 'stopped';
+        const desiredFPS = 30;
 
-        const fps = serverMetrics ? serverMetrics.fps : 0;
+        const fps = serverMetrics ? serverMetrics.fps : desiredFPS;
         const cpu = serverMetrics ? serverMetrics.cpu : 0;
 
-        this.fpsGauge.labels(server.url, state).set(fps);
-        this.cpuGauge.labels(server.url, state).set(cpu);
+        this.fpsGauge.labels(server.url).set(desiredFPS - fps);
+
+        this.cpuGauge.labels(server.url).set(cpu);
+
+        //
+
+        const playerMetrics = await this.collectPlayerMetrics(server);
+
+        const avg = playerMetrics.length
+          ? playerMetrics.map((t) => t.ping).reduce((a, b) => a + b, 0) /
+            playerMetrics.length
+          : 0;
+
+        console.log(server.url, avg);
+
+        const loss = playerMetrics.length
+          ? playerMetrics.map((t) => t.loss).reduce((a, b) => a + b, 0) /
+            playerMetrics.length
+          : 0;
+
+        this.pingGauge.labels(server.url).set(avg);
+        this.lossGauge.labels(server.url).set(loss);
       } catch (e) {
         this.logger.error('Error while collecting metrics', e);
       }

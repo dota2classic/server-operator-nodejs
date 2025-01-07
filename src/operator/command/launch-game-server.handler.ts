@@ -118,7 +118,7 @@ export class LaunchGameServerCommandHandler
     const map = info.map;
     const gameMode = info.gameMode;
 
-    const tickrate = 60;
+    const tickrate = 30;
 
     const clConfig: CommandLineConfig = {
       matchId: matchId,
