@@ -2,7 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { RconService } from './rcon.service';
 import { SrcdsService } from './srcds.service';
 import { ServerConfiguration } from './app.service';
-import { parseStatsResponse, SrcdsServerMetrics } from './util/parseStatsResponse';
+import {
+  parseStatsResponse,
+  SrcdsServerMetrics,
+} from './util/parseStatsResponse';
 import { parseStatusResponse } from './util/parseStatusResponse';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import * as client from 'prom-client';
@@ -28,7 +31,7 @@ export class MetricsService {
   constructor(
     private readonly rconService: RconService,
     private readonly srcdsService: SrcdsService,
-    private readonly pushgateway: client.Pushgateway<PrometheusContentType>,,
+    private readonly pushgateway: client.Pushgateway<PrometheusContentType>,
   ) {
     this.cpuGauge = new Gauge<string>({
       name: 'srcds_metrics_cpu',
