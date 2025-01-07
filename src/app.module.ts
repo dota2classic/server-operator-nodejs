@@ -18,6 +18,7 @@ import { RmqOptions } from '@nestjs/microservices/interfaces/microservice-config
 import { MatchStatusService } from './match-status.service';
 import { EventsController } from './events.controller';
 import { MetricsService } from './metrics.service';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 
 const EventHandlers = [
   GameServerNotStartedHandler,
@@ -34,6 +35,17 @@ const EventHandlers = [
       isGlobal: true,
     }),
     ScheduleModule.forRoot(),
+    PrometheusModule.registerAsync({
+      useFactory(config: ConfigService) {
+        return {
+          pushgateway: {
+            url: config.get('pushgateway_url'),
+          },
+        };
+      },
+      imports: [],
+      inject: [ConfigService],
+    }),
     ClientsModule.registerAsync([
       {
         name: 'QueryCore',

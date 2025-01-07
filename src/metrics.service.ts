@@ -8,6 +8,8 @@ import {
 } from './util/parseStatsResponse';
 import { parseStatusResponse } from './util/parseStatusResponse';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import * as client from 'prom-client';
+import { Gauge, PrometheusContentType } from 'prom-client';
 
 export interface CleanPlayerMetric {
   steam_id: string;
@@ -21,50 +23,57 @@ export interface CleanPlayerMetric {
 export class MetricsService {
   private logger = new Logger('SRCDS');
 
+  private cpuGauge: Gauge<string>;
+  private fpsGauge: Gauge<string>;
+
   constructor(
     private readonly rconService: RconService,
     private readonly srcdsService: SrcdsService,
-  ) {}
+    private readonly pushgateway: client.Pushgateway<PrometheusContentType>,
+  ) {
+    this.cpuGauge = new Gauge<string>({
+      name: 'srcds_metrics_cpu',
+      help: 'app_concurrent_metrics_help',
+      labelNames: ['server_url', 'state'],
+    });
+
+    this.fpsGauge = new Gauge<string>({
+      name: 'srcds_metrics_fps',
+      help: 'app_concurrent_metrics_help',
+      labelNames: ['server_url', 'state'],
+    });
+  }
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   private async collectMetrics() {
     for (let server of Array.from(this.srcdsService.pool.values())) {
       try {
-        let serverMetrics: SrcdsServerMetrics =
-          await this.collectServerMetrics(server);
-        this.logger.log({
-          server: `${server.url}`,
-          ...serverMetrics,
-        });
+        let serverMetrics = await this.collectServerMetrics(server);
 
-        const playerMetrics = await this.collectPlayerMetrics(server);
-        playerMetrics.forEach((plr) => {
-          this.logger.log({
-            server: server.url,
-            ...plr,
-          });
-        });
+        const state = serverMetrics ? 'running' : 'stopped';
+
+        const fps = serverMetrics ? serverMetrics.fps : 0;
+        const cpu = serverMetrics ? serverMetrics.cpu : 0;
+
+        this.fpsGauge.labels(server.url, state).set(fps);
+        this.cpuGauge.labels(server.url, state).set(cpu);
       } catch (e) {
         this.logger.error('Error while collecting metrics', e);
       }
     }
+
+    await this.pushgateway.pushAdd({
+      jobName: 'server-operator-nodejs',
+    });
   }
 
-  private async collectServerMetrics(server: ServerConfiguration) {
+  private async collectServerMetrics(
+    server: ServerConfiguration,
+  ): Promise<SrcdsServerMetrics | undefined> {
     return await this.rconService
       .executeRcon(server.host, server.port, 'stats')
       .then(parseStatsResponse)
-      .catch(
-        () =>
-          ({
-            cpu: 0,
-            in: 0,
-            out: 0,
-            uptime: 0,
-            fps: 0,
-            players: 0,
-          }) as SrcdsServerMetrics,
-      );
+      .catch(() => undefined);
   }
 
   private async collectPlayerMetrics(
