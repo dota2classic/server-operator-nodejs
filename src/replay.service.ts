@@ -99,6 +99,8 @@ export class ReplayService {
       this.logger.log(`Running games, cant touch logs`, {
         unsafe_match_ids: unsafeMatchIds,
       });
+      if (unsafeMatchIds.length > 0) return;
+
       const rootFolder = path.join(
         this.configService.get('srcds.dotaRoot'),
         'dota',

@@ -27,6 +27,7 @@ export class MetricsService {
   private fpsGauge: Gauge<string>;
   private pingGauge: Gauge<string>;
   private lossGauge: Gauge<string>;
+  private ramGauge: Gauge<string>;
 
   constructor(
     private readonly rconService: RconService,
@@ -56,10 +57,24 @@ export class MetricsService {
       help: 'app_concurrent_metrics_help',
       labelNames: ['server_url'],
     });
+
+    // this.ramGauge = new Gauge<string>({
+    //   name: 'srcds_host_ram',
+    //   help: 'app_concurrent_metrics_help',
+    //   labelNames: ['host'],
+    // });
   }
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   private async collectMetrics() {
+    await this.collectSrcdsMetrics();
+
+    await this.pushgateway.pushAdd({
+      jobName: 'server-operator-nodejs',
+    });
+  }
+
+  private async collectSrcdsMetrics() {
     for (let server of Array.from(this.srcdsService.pool.values())) {
       try {
         let serverMetrics = await this.collectServerMetrics(server);
@@ -93,10 +108,6 @@ export class MetricsService {
         this.logger.error('Error while collecting metrics', e);
       }
     }
-
-    await this.pushgateway.pushAdd({
-      jobName: 'server-operator-nodejs',
-    });
   }
 
   private async collectServerMetrics(
