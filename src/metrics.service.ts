@@ -64,7 +64,7 @@ export class MetricsService {
     // });
   }
 
-  // @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_5_SECONDS)
   private async collectMetrics() {
     await this.collectSrcdsMetrics();
 
