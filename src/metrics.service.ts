@@ -9,6 +9,7 @@ import {
 import { parseStatusResponse } from './util/parseStatusResponse';
 import * as client from 'prom-client';
 import { Gauge, PrometheusContentType } from 'prom-client';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 export interface CleanPlayerMetric {
   steam_id: string;
