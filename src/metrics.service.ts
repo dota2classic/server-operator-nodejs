@@ -7,7 +7,6 @@ import {
   SrcdsServerMetrics,
 } from './util/parseStatsResponse';
 import { parseStatusResponse } from './util/parseStatusResponse';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import * as client from 'prom-client';
 import { Gauge, PrometheusContentType } from 'prom-client';
 
@@ -65,7 +64,7 @@ export class MetricsService {
     // });
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  // @Cron(CronExpression.EVERY_5_SECONDS)
   private async collectMetrics() {
     await this.collectSrcdsMetrics();
 
