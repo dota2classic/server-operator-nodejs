@@ -29,3 +29,9 @@ services:
       - ./postgres-data:/var/lib/postgresql/data
     ports:
       - "0.0.0.0:5432:5432"
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root

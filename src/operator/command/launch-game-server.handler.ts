@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import { ConfigService } from '@nestjs/config';
 import { SrcdsService } from '../../srcds.service';
 import { LaunchGameServerNewResponse } from './launch-game-server-new.response';
+import { MatchmakingMode } from '../../gateway/shared-types/matchmaking-mode';
 
 export interface CommandLineConfig {
   url: string;
@@ -164,6 +165,8 @@ export class LaunchGameServerCommandHandler
       `${clConfigBase64}`, // Base64 encoded match data
       '+con_logfile',
       `logs/match_${matchId}.log`,
+      '+simple',
+      (info.mode === MatchmakingMode.BOTS).toString(),
     ];
 
     this.logger.log('Launch args', {
