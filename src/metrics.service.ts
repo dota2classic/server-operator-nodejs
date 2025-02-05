@@ -10,6 +10,7 @@ import { parseStatusResponse } from './util/parseStatusResponse';
 import * as client from 'prom-client';
 import { Gauge, PrometheusContentType } from 'prom-client';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { ConfigService } from '@nestjs/config';
 
 export interface CleanPlayerMetric {
   steam_id: string;
@@ -28,8 +29,11 @@ export class MetricsService {
   private pingGauge: Gauge<string>;
   private lossGauge: Gauge<string>;
   private ramGauge: Gauge<string>;
+  private playerCountGauge: Gauge<string>;
+  private hostCountGauge: Gauge<string>;
 
   constructor(
+    private readonly config: ConfigService,
     private readonly rconService: RconService,
     private readonly srcdsService: SrcdsService,
     private readonly pushgateway: client.Pushgateway<PrometheusContentType>,
@@ -58,11 +62,17 @@ export class MetricsService {
       labelNames: ['server_url'],
     });
 
-    // this.ramGauge = new Gauge<string>({
-    //   name: 'srcds_host_ram',
-    //   help: 'app_concurrent_metrics_help',
-    //   labelNames: ['host'],
-    // });
+    this.playerCountGauge = new Gauge<string>({
+      name: 'host_player_count',
+      help: 'app_concurrent_metrics_help',
+      labelNames: ['host'],
+    });
+
+    this.hostCountGauge = new Gauge<string>({
+      name: 'host_game_count',
+      help: 'app_concurrent_metrics_help',
+      labelNames: ['host'],
+    });
   }
 
   @Cron(CronExpression.EVERY_5_SECONDS)
@@ -75,39 +85,58 @@ export class MetricsService {
   }
 
   private async collectSrcdsMetrics() {
+    const allPlayers: CleanPlayerMetric[] = [];
+    let runningServers = 0;
     for (let server of Array.from(this.srcdsService.pool.values())) {
-      try {
-        let serverMetrics = await this.collectServerMetrics(server);
-
-        const desiredFPS = 30;
-
-        const fps = serverMetrics ? serverMetrics.fps : desiredFPS;
-        const cpu = serverMetrics ? serverMetrics.cpu : 0;
-
-        this.fpsGauge.labels(server.url).set(desiredFPS - fps);
-
-        this.cpuGauge.labels(server.url).set(cpu);
-
-        //
-
-        const playerMetrics = await this.collectPlayerMetrics(server);
-
-        const avg = playerMetrics.length
-          ? playerMetrics.map((t) => t.ping).reduce((a, b) => a + b, 0) /
-            playerMetrics.length
-          : 0;
-
-        const loss = playerMetrics.length
-          ? playerMetrics.map((t) => t.loss).reduce((a, b) => a + b, 0) /
-            playerMetrics.length
-          : 0;
-
-        this.pingGauge.labels(server.url).set(avg);
-        this.lossGauge.labels(server.url).set(loss);
-      } catch (e) {
-        this.logger.error('Error while collecting metrics', e);
+      const srv = await this.collectServerMetrics(server);
+      if (srv) {
+        runningServers += 1;
       }
+      const plrMetrics = await this.collectPlayerMetrics(server);
+      allPlayers.push(...plrMetrics);
     }
+
+    this.playerCountGauge
+      .labels(this.config.get('srcds.host'))
+      .set(allPlayers.length);
+
+    this.hostCountGauge
+      .labels(this.config.get('srcds.host'))
+      .set(runningServers);
+
+    // for (let server of Array.from(this.srcdsService.pool.values())) {
+    //   try {
+    //     let serverMetrics = await this.collectServerMetrics(server);
+    //
+    //     const desiredFPS = 30;
+    //
+    //     const fps = serverMetrics ? serverMetrics.fps : desiredFPS;
+    //     const cpu = serverMetrics ? serverMetrics.cpu : 0;
+    //
+    //     this.fpsGauge.labels(server.url).set(desiredFPS - fps);
+    //
+    //     this.cpuGauge.labels(server.url).set(cpu);
+    //
+    //     //
+    //
+    //     const playerMetrics = await this.collectPlayerMetrics(server);
+    //
+    //     const avg = playerMetrics.length
+    //       ? playerMetrics.map((t) => t.ping).reduce((a, b) => a + b, 0) /
+    //         playerMetrics.length
+    //       : 0;
+    //
+    //     const loss = playerMetrics.length
+    //       ? playerMetrics.map((t) => t.loss).reduce((a, b) => a + b, 0) /
+    //         playerMetrics.length
+    //       : 0;
+    //
+    //     this.pingGauge.labels(server.url).set(avg);
+    //     this.lossGauge.labels(server.url).set(loss);
+    //   } catch (e) {
+    //     this.logger.error('Error while collecting metrics', e);
+    //   }
+    // }
   }
 
   private async collectServerMetrics(
