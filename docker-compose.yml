@@ -9,6 +9,34 @@ services:
     ports:
       - 5672:5672
       - "0.0.0.0:15672:15672"
+  core:
+    container_name: core
+    image: dota2classic/matchmaking:core2
+    volumes:
+      - ./configs/core.yaml:/config.yaml
+  user:
+    container_name: user
+    image: dota2classic/matchmaking:user-service
+    volumes:
+      - ./configs/user.yaml:/config.yaml
+  gameserver:
+    container_name: gameserver
+    restart: always
+    image: dota2classic/matchmaking:gameserver
+    volumes:
+      - ./configs/gameserver.yaml:/config.yaml
+    ports:
+      - "0.0.0.0:5003:5003"
+  forum:
+    restart: always
+    depends_on:
+      - redis
+    container_name: forum
+    image: dota2classic/matchmaking:forum
+    volumes:
+      - ./configs/forum.yaml:/config.yaml
+    ports:
+      - "0.0.0.0:6009:6009"
   redis:
     container_name: redis
     image: redis:7.4.0-alpine
@@ -29,9 +57,3 @@ services:
       - ./postgres-data:/var/lib/postgresql/data
     ports:
       - "0.0.0.0:5432:5432"
-  mongo:
-    image: mongo
-    restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root

@@ -21,6 +21,7 @@ config.yaml
 # Tests
 /coverage
 /.nyc_output
+configs/*
 
 # IDEs and editors
 /.idea

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CqrsModule } from '@nestjs/cqrs';
@@ -19,6 +19,8 @@ import { MatchStatusService } from './match-status.service';
 import { EventsController } from './events.controller';
 import { MetricsService } from './metrics.service';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { CustomMetricsMiddleware } from './middleware/custom-metrics.middleware';
+import { ReqLoggingInterceptor } from './middleware/req-logging.interceptor';
 
 const EventHandlers = [
   GameServerNotStartedHandler,
@@ -117,7 +119,14 @@ const EventHandlers = [
     SrcdsService,
     MatchStatusService,
     MetricsService,
+    ReqLoggingInterceptor,
     ...EventHandlers,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(CustomMetricsMiddleware)
+      .forRoutes('match', 'live', 'player', 'admin', 'meta', 'stats', 'forum');
+  }
+}

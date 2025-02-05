@@ -1,4 +1,10 @@
-import { Body, Controller, Logger, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Logger,
+  Post,
+  UseInterceptors,
+} from '@nestjs/common';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { construct } from './gateway/util/construct';
 import {
@@ -20,7 +26,9 @@ import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.eve
 import { PlayerConnectedEvent } from './gateway/events/srcds/player-connected.event';
 import { SrcdsService } from './srcds.service';
 import { MatchStatusService } from './match-status.service';
+import { ReqLoggingInterceptor } from './middleware/req-logging.interceptor';
 
+@UseInterceptors(ReqLoggingInterceptor)
 @Controller()
 export class AppController {
   private readonly logger = new Logger('AppController');
