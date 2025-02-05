@@ -97,11 +97,11 @@ export class MetricsService {
     }
 
     this.playerCountGauge
-      .labels(this.config.get('srcds.host'))
+      .labels(this.config.get('srcds.host') + ':9100') // dont ask me
       .set(allPlayers.length);
 
     this.hostCountGauge
-      .labels(this.config.get('srcds.host'))
+      .labels(this.config.get('srcds.host') + ':9100')
       .set(runningServers);
 
     // for (let server of Array.from(this.srcdsService.pool.values())) {
