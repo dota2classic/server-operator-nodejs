@@ -1,5 +1,7 @@
 services:
   rabbitmq:
+    networks:
+      - world_network
     image: rabbitmq:management
     #    volumes:
     #      - "./data:/var/lib/rabbitmq/mnesia/"
@@ -10,16 +12,22 @@ services:
       - 5672:5672
       - "0.0.0.0:15672:15672"
   core:
+    networks:
+      - world_network
     container_name: core
     image: dota2classic/matchmaking:core2
     volumes:
       - ./configs/core.yaml:/config.yaml
   user:
+    networks:
+      - world_network
     container_name: user
     image: dota2classic/matchmaking:user-service
     volumes:
       - ./configs/user.yaml:/config.yaml
   gameserver:
+    networks:
+      - world_network
     container_name: gameserver
     restart: always
     image: dota2classic/matchmaking:gameserver
@@ -28,6 +36,8 @@ services:
     ports:
       - "0.0.0.0:5003:5003"
   forum:
+    networks:
+      - world_network
     restart: always
     depends_on:
       - redis
@@ -38,6 +48,8 @@ services:
     ports:
       - "0.0.0.0:6009:6009"
   redis:
+    networks:
+      - world_network
     container_name: redis
     image: redis:7.4.0-alpine
     restart: always
@@ -48,6 +60,8 @@ services:
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
   postgres:
+    networks:
+      - world_network
     container_name: db
     image: postgres:16.4-bookworm
     restart: always
@@ -58,6 +72,8 @@ services:
     ports:
       - "0.0.0.0:5432:5432"
   api:
+    networks:
+      - world_network
     container_name: api
     image: dota2classic/matchmaking:api-gateway
     depends_on:
@@ -69,3 +85,23 @@ services:
 
     ports:
       - "0.0.0.0:6001:6001"
+  operator:
+    container_name: operator
+    networks:
+      - srcds_network
+      - world_network
+    image: dota2classic/operator
+    volumes:
+      - ./configs/operator.yaml:/config.yaml
+      - //Users/itachi/.orbstack/run/docker.sock:/var/run/docker.sock
+    environment:
+      - RABBITMQ_DEFAULT_USER=itachi
+      - RABBITMQ_DEFAULT_PASS=j#AP0M6J6Z4
+    ports:
+      - "0.0.0.0:7777:7777"
+networks:
+  srcds_network:
+    driver: bridge
+    external: true
+  world_network:
+    driver: bridge

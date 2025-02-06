@@ -11,6 +11,7 @@ import { DockerServerWrapper } from './docker-server-wrapper';
 import { Dota_Map } from '../gateway/shared-types/dota-map';
 import { Dota_GameMode } from '../gateway/shared-types/dota-game-mode';
 import { CommandLineConfig } from '../operator/command/launch-game-server.handler';
+import { devnullstd } from '../util/devnullstd';
 
 @Injectable()
 export class DockerService implements OnApplicationBootstrap {
@@ -44,12 +45,17 @@ export class DockerService implements OnApplicationBootstrap {
     const matchBase64 = Buffer.from(JSON.stringify(clConfig)).toString(
       'base64',
     );
+
+    const masterHost = this.config.get('srcds.masterHost');
+    const network = this.config.get('srcds.network');
+    const runOnHostNetwork = !network;
+    this.logger.log(`Running in ${runOnHostNetwork ? 'host' : 'network'} mode`);
     this.docker.run(
-      'dota2classic/srcds:d684',
+      this.config.get('srcds.serverImage'),
       [],
-      process.stdout,
+      devnullstd(),
       {
-        name: `match-${matchId}`,
+        name: `match${matchId}`,
         AttachStdin: false,
         AttachStderr: false,
         AttachStdout: false,
@@ -62,16 +68,28 @@ export class DockerService implements OnApplicationBootstrap {
           [DockerServerWrapper.SERVER_URL_LABEL]: `${this.config.get('srcds.host')}:${exposePort}`,
           [DockerServerWrapper.MATCH_ID_LABEL]: matchId.toString(),
         },
+        ExposedPorts: {
+          [`${exposePort}/tcp`]: {},
+          [`${exposePort}/udp`]: {},
+          [`${exposePort + 5}/tcp`]: {},
+          [`${exposePort + 5}/udp`]: {},
+        },
+
         HostConfig: {
-          CpuQuota: 20000,
+          CpuQuota: 50000,
+          Memory: 1024 * 1042 * 512, // 512 m
           AutoRemove: true,
-          NetworkMode: 'host',
+          NetworkMode: runOnHostNetwork ? 'host' : network,
+
           PortBindings: {
-            [`${27015}`]: [{ HostPort: `${exposePort}` }],
+            [`${27015}/tcp`]: [{ HostPort: `${exposePort}` }],
+            [`${27015}/udp`]: [{ HostPort: `${exposePort}` }],
+            [`${27020}/tcp`]: [{ HostPort: `${exposePort + 5}` }],
+            [`${27020}/udp`]: [{ HostPort: `${exposePort + 5}` }],
           },
           Binds: [
-            `${this.getLogsVolumePath()}:/root/dota/logs`,
-            `${this.getReplaysVolumePath()}:/root/dota/replays`,
+            // `${this.getLogsVolumePath()}:/root/dota/logs`,
+            // `${this.getReplaysVolumePath()}:/root/dota/replays`,
           ],
         },
         Env: [
@@ -81,6 +99,8 @@ export class DockerService implements OnApplicationBootstrap {
           `LOGFILE_NAME=${logfileName}`,
           `GAMEMODE=${gameMode}`,
           `TV_ENABLE=${enableTv ? 1 : 0}`,
+          `RCON_PASSWORD=${this.config.get('srcds.rconPassword')}`,
+          `MASTER_SERVER=${runOnHostNetwork ? 'http://localhost:7777' : `http://${masterHost}:7777`}`,
         ],
       },
       (e) => {
@@ -92,7 +112,7 @@ export class DockerService implements OnApplicationBootstrap {
 
   public async stopGameServer(matchId: number) {
     const some = await this.docker.listContainers();
-    const regex = new RegExp(`\/match-${matchId}`);
+    const regex = new RegExp(`\/match${matchId}`);
     const container = some.find(
       (t) => t.Names.findIndex((name) => regex.test(name)) !== -1,
     );
@@ -107,8 +127,8 @@ export class DockerService implements OnApplicationBootstrap {
   }
 
   async onApplicationBootstrap() {
-    this.getLogsVolumePath();
-    await this.stopGameServer(42);
+    await this.updateServerImage();
+    await this.createDockerNetwork();
   }
 
   public async haveFreeSlot(): Promise<boolean> {
@@ -120,20 +140,49 @@ export class DockerService implements OnApplicationBootstrap {
   }
 
   public async getRunningGameServers(): Promise<DockerServerWrapper[]> {
-    // const regex = new RegExp(`\/match-\d+`);
-    const regex = /\/match-\d+/g;
     return (
-      await this.docker
-        .listContainers()
-        .then((containers) =>
-          containers.filter(
-            (cont) => cont.Names.findIndex((t) => regex.test(t)) !== -1,
-          ),
-        )
+      await this.docker.listContainers().then((containers) =>
+        containers.filter((cont) => {
+          const regex = /\/match\d+/g;
+
+          return regex.test(cont.Names[0]);
+        }),
+      )
     ).map((container) => new DockerServerWrapper(container));
   }
 
   private getReplaysVolumePath(): string {
     return path.resolve(this.config.get('srcds.volume'), 'replays');
+  }
+
+  private async createDockerNetwork() {
+    const network = await this.docker
+      .listNetworks()
+      .then((networks) =>
+        networks.find((n) => n.Name === this.config.get('srcds.network')),
+      );
+
+    let createNew: boolean = !network;
+    if (network && (!network.Attachable || network.Driver !== 'bridge')) {
+      // Make sure its good
+      const n = await this.docker.getNetwork(network.Id);
+      await n.remove();
+
+      createNew = true;
+    }
+
+    if (!createNew) return;
+
+    await this.docker.createNetwork({
+      Name: this.config.get('srcds.network'),
+      Attachable: true,
+      Driver: 'bridge',
+    });
+  }
+
+  private async updateServerImage() {
+    this.logger.log('Pulling latest srcds image...');
+    await this.docker.pull(this.config.get('srcds.serverImage'));
+    this.logger.log('Successfully updated srcds image');
   }
 }

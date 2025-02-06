@@ -94,7 +94,7 @@ export const parseLog = (rawLog: string): LogData => {
 
 export async function fillAdditionalDataFromLog(
   evt: GameResultsEvent,
-  logFile: string,,
+  logFile: string,
 ) {
   const logger = new Logger('LogParser');
   logger.log(`Beginning parsing log file`, {

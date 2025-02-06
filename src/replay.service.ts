@@ -4,7 +4,6 @@ import { InjectS3, S3 } from 'nestjs-s3';
 import * as fs from 'fs';
 import * as path from 'path';
 import { PutObjectCommandInput } from '@aws-sdk/client-s3';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { DockerService } from './docker/docker.service';
 
 @Injectable()
@@ -69,12 +68,12 @@ export class ReplayService {
   //   }
   // }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  // @Cron(CronExpression.EVERY_MINUTE)
   private async checkUploadableReplays() {
     await this.scanUploadableEntities('replays', 'replays', 10);
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  // @Cron(CronExpression.EVERY_10_SECONDS)
   private async checkUploadableLogs() {
     await this.scanUploadableEntities('logs', 'logs', 50);
   }
