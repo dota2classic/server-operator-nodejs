@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { PutObjectCommandInput } from '@aws-sdk/client-s3';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { getRunningSrcds } from './util/processes';
+import { DockerService } from './docker/docker.service';
 
 @Injectable()
 export class ReplayService {
@@ -16,6 +16,7 @@ export class ReplayService {
   constructor(
     private readonly configService: ConfigService,
     @InjectS3() private readonly s3: S3,
+    private readonly docker: DockerService,
   ) {}
 
   // We should be careful not to upload a running replay
@@ -73,7 +74,7 @@ export class ReplayService {
     await this.scanUploadableEntities('replays', 'replays', 10);
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   private async checkUploadableLogs() {
     await this.scanUploadableEntities('logs', 'logs', 50);
   }
@@ -91,10 +92,8 @@ export class ReplayService {
     }
     try {
       this.procMap.set(bucket, true);
-      const runningGames = await getRunningSrcds();
-      const unsafeMatchIds: number[] = runningGames.map(
-        (it) => it.match.matchId,
-      );
+      const runningGames = await this.docker.getRunningGameServers();
+      const unsafeMatchIds: number[] = runningGames.map((it) => it.matchId);
 
       this.logger.log(`Running games, cant touch ${entityFolder}`, {
         unsafe_match_ids: unsafeMatchIds,
@@ -102,8 +101,7 @@ export class ReplayService {
       // if (unsafeMatchIds.length > 0) return;
 
       const rootFolder = path.join(
-        this.configService.get('srcds.dotaRoot'),
-        'dota',
+        this.configService.get('srcds.volume'),
         entityFolder,
       );
       const logs = (await fs.promises.readdir(rootFolder)).slice(0, limit); // Let's do 50 at a time

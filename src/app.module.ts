@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule, RedisOptions, Transport } from '@nestjs/microservices';
-import { GameServerNotStartedHandler } from './operator/event-handler/server-actualization-requested.handler';
 import { LaunchGameServerCommandHandler } from './operator/command/launch-game-server.handler';
 import { ScheduleModule } from '@nestjs/schedule';
 import { KillServerRequestedEventHandler } from './operator/event-handler/kill-server-requested.handler';
@@ -21,9 +20,10 @@ import { MetricsService } from './metrics.service';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { CustomMetricsMiddleware } from './middleware/custom-metrics.middleware';
 import { ReqLoggingInterceptor } from './middleware/req-logging.interceptor';
+import * as Docker from 'dockerode';
+import { DockerService } from './docker/docker.service';
 
 const EventHandlers = [
-  GameServerNotStartedHandler,
   LaunchGameServerCommandHandler,
   KillServerRequestedEventHandler,
   RunRconHandler,
@@ -120,13 +120,18 @@ const EventHandlers = [
     MatchStatusService,
     MetricsService,
     ReqLoggingInterceptor,
+    DockerService,
+    {
+      provide: 'Docker',
+      useFactory() {
+        return new Docker();
+      },
+    },
     ...EventHandlers,
   ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(CustomMetricsMiddleware)
-      .forRoutes('match', 'live', 'player', 'admin', 'meta', 'stats', 'forum');
+    consumer.apply(CustomMetricsMiddleware).forRoutes('');
   }
 }

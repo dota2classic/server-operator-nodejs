@@ -10,12 +10,9 @@ import { LaunchGameServerCommand } from './gateway/commands/LaunchGameServer/lau
 import { LaunchGameServerNewResponse } from './operator/command/launch-game-server-new.response';
 import { construct } from './gateway/util/construct';
 import { SrcdsServerStartedEvent } from './gateway/events/srcds-server-started.event';
-import { RunRconResponse } from './gateway/commands/RunRcon/run-rcon.response';
 import { SrcdsService } from './srcds.service';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
-import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
 import { KillServerRequestedEvent } from './gateway/events/gs/kill-server-requested.event';
-import { RunRconCommand } from './gateway/commands/RunRcon/run-rcon.command';
 
 @Controller()
 export class EventsController {
@@ -56,22 +53,13 @@ export class EventsController {
     );
   }
 
-  @MessagePattern(ServerActualizationRequestedEvent.name)
-  async ServerActualizationRequestedEvent(
-    query: ServerActualizationRequestedEvent,
-  ) {
-    return this.ebus.publish(
-      construct(ServerActualizationRequestedEvent, query),
-    );
-  }
-
   @MessagePattern(KillServerRequestedEvent.name)
   async KillServerRequestedEvent(query: KillServerRequestedEvent) {
     return this.ebus.publish(construct(KillServerRequestedEvent, query));
   }
 
-  @MessagePattern(RunRconCommand.name)
-  async RunRconCommand(query: RunRconCommand): Promise<RunRconResponse> {
-    return this.cbus.execute(construct(RunRconCommand, query));
-  }
+  // @MessagePattern(RunRconCommand.name)
+  // async RunRconCommand(query: RunRconCommand): Promise<RunRconResponse> {
+  //   return this.cbus.execute(construct(RunRconCommand, query));
+  // }
 }

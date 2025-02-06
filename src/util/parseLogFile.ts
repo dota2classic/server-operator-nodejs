@@ -1,6 +1,4 @@
-import { ServerConfiguration } from 'src/app.service';
 import { GameResultsEvent } from 'src/gateway/events/gs/game-results.event';
-import * as path from 'path';
 import * as fs from 'fs';
 import { Logger } from '@nestjs/common';
 
@@ -94,16 +92,10 @@ export const parseLog = (rawLog: string): LogData => {
   return obj2 as LogData;
 };
 
-export async function fillAdditionalData(
+export async function fillAdditionalDataFromLog(
   evt: GameResultsEvent,
-  server: ServerConfiguration,
+  logFile: string,,
 ) {
-  const logFile = path.join(
-    server.path,
-    'dota/logs',
-    `match_${evt.matchId}.log`,
-  );
-
   const logger = new Logger('LogParser');
   logger.log(`Beginning parsing log file`, {
     log_file: logFile,

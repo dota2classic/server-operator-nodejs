@@ -2,10 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ServerConfiguration } from './app.service';
 import { Dota2Version } from './gateway/shared-types/dota2version';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { GameServerDiscoveredEvent } from './gateway/events/game-server-discovered.event';
 import { EventBus } from '@nestjs/cqrs';
-import { getRunningSrcds, SrcdsProcess } from './util/processes';
+import { DockerService } from './docker/docker.service';
 
 // Allocate servers according to config
 @Injectable()
@@ -17,6 +15,7 @@ export class SrcdsService {
   constructor(
     config: ConfigService,
     private readonly ebus: EventBus,
+    private readonly docker: DockerService,
   ) {
     const serverCount = config.get<number>('srcds.pool');
     const rootFolder = config.get<string>('srcds.dotaRoot');
@@ -38,34 +37,5 @@ export class SrcdsService {
 
     this.logger.log(`Initialized ${this.pool.size} servers`);
     this.logger.log(Object.fromEntries(this.pool));
-  }
-
-  @Cron(CronExpression.EVERY_5_SECONDS)
-  handleCron() {
-    Array.from(this.pool.values()).forEach((configuration) => {
-      this.ebus.publish(
-        new GameServerDiscoveredEvent(configuration.url, configuration.version),
-      );
-    });
-  }
-
-  public getServer(url: string): ServerConfiguration | undefined {
-    return this.pool.get(url);
-  }
-
-  public async getSrcdsProcess(url: string): Promise<SrcdsProcess | undefined> {
-    const processes = await getRunningSrcds();
-    return processes.find((proc) => proc.match.url == url);
-  }
-
-  public async getFreeServer(): Promise<ServerConfiguration | undefined> {
-    const runningServers = await getRunningSrcds();
-    const freeServers = Array.from(this.pool.values()).filter(
-      (serverConfiguration) =>
-        runningServers.findIndex(
-          (rs) => rs.port === serverConfiguration.port,
-        ) === -1,
-    );
-    return freeServers[0];
   }
 }

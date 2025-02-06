@@ -15,24 +15,25 @@ export class RunRconHandler implements ICommandHandler<RunRconCommand> {
   ) {}
 
   async execute(command: RunRconCommand): Promise<RunRconResponse> {
-    if (!this.srcdsService.getServer(command.serverUrl)) {
-      this.logger.warn('Skipping run rcon: not my server', {
-        server_url: command.serverUrl,
-      });
-      return;
-    }
-
-    this.logger.log('Running RCON command', {
-      command: command.command,
-      server: command.serverUrl,
-    });
-    const host = command.serverUrl.split(':')[0];
-    const port = parseInt(command.serverUrl.split(':')[1]);
-
-    const response: string | undefined = await this.rconService
-      .executeRcon(host, port, command.command)
-      .catch(() => undefined);
-
-    return new RunRconResponse(response);
+    return new RunRconResponse('');
+    // if (!this.srcdsService.getServer(command.serverUrl)) {
+    //   this.logger.warn('Skipping run rcon: not my server', {
+    //     server_url: command.serverUrl,
+    //   });
+    //   return;
+    // }
+    //
+    // this.logger.log('Running RCON command', {
+    //   command: command.command,
+    //   server: command.serverUrl,
+    // });
+    // const host = command.serverUrl.split(':')[0];
+    // const port = parseInt(command.serverUrl.split(':')[1]);
+    //
+    // const response: string | undefined = await this.rconService
+    //   .executeRcon(host, port, command.command)
+    //   .catch(() => undefined);
+    //
+    // return new RunRconResponse(response);
   }
 }

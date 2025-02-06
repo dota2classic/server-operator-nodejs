@@ -17,7 +17,7 @@ import {
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 import { itemIdByName } from './gateway/constants/items';
 import { GameResultsEvent } from './gateway/events/gs/game-results.event';
-import { fillAdditionalData } from './util/parseLogFile';
+import { fillAdditionalDataFromLog } from './util/parseLogFile';
 import { DotaConnectionState } from './gateway/shared-types/dota-player-connection-state';
 import { PlayerId } from './gateway/shared-types/player-id';
 import { MatchFailedEvent } from './gateway/events/match-failed.event';
@@ -27,6 +27,8 @@ import { PlayerConnectedEvent } from './gateway/events/srcds/player-connected.ev
 import { SrcdsService } from './srcds.service';
 import { MatchStatusService } from './match-status.service';
 import { ReqLoggingInterceptor } from './middleware/req-logging.interceptor';
+import * as path from 'path';
+import { DockerService } from './docker/docker.service';
 
 @UseInterceptors(ReqLoggingInterceptor)
 @Controller()
@@ -38,6 +40,7 @@ export class AppController {
     private readonly cbus: CommandBus,
     private readonly ebus: EventBus,
     private readonly matchStatusService: MatchStatusService,
+    private readonly docker: DockerService,
   ) {}
 
   @Post('/live_match')
@@ -209,7 +212,10 @@ export class AppController {
     });
 
     try {
-      await fillAdditionalData(g, this.srcdsService.getServer(g.server));
+      await fillAdditionalDataFromLog(
+        g,
+        path.join(this.docker.getLogsVolumePath(), `match_${g.matchId}.log`),
+      );
     } catch (e) {
       this.logger.error('Failed to fill data from log file', {
         error: e,
