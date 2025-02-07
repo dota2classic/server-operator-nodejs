@@ -93,8 +93,7 @@ export class WinstonWrapper implements LoggerService {
         ...message,
         ...optionalParams[0],
         context: optionalParams[1],
-        applicat,
-        ion: this.application,
+        application: this.application,
       };
     } else if (optionalParams.length === 1) {
       message = {
