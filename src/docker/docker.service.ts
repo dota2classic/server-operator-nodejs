@@ -64,6 +64,7 @@ export class DockerService implements OnApplicationBootstrap {
         Labels: {
           [DockerServerWrapper.SERVER_URL_LABEL]: `${this.config.get('srcds.host')}:${exposePort}`,
           [DockerServerWrapper.MATCH_ID_LABEL]: matchId.toString(),
+          [DockerServerWrapper.LOBBY_TYPE_LABEL]: clConfig.info.mode.toString(),
         },
         ExposedPorts: {
           [`${exposePort}/tcp`]: {},
