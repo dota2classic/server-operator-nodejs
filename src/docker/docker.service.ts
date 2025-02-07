@@ -46,6 +46,8 @@ export class DockerService implements OnApplicationBootstrap {
       'base64',
     );
 
+    console.log(matchBase64);
+
     const masterHost = this.config.get('srcds.masterHost');
     const network = this.config.get('srcds.network');
     const runOnHostNetwork = !network;
@@ -104,6 +106,10 @@ export class DockerService implements OnApplicationBootstrap {
         ],
       },
       (e) => {
+        this.logger.log('Container stopped', {
+          match_id: matchId,
+          serverUrl: clConfig.url,
+        });
         console.log('Callback called!', e);
       },
     );
@@ -182,7 +188,26 @@ export class DockerService implements OnApplicationBootstrap {
 
   private async updateServerImage() {
     this.logger.log('Pulling latest srcds image...');
-    await this.docker.pull(this.config.get('srcds.serverImage'));
+    await new Promise<void>(async (resolve, reject) => {
+      const stream = await this.docker.pull(
+        this.config.get('srcds.serverImage'),
+      );
+
+      const onFinished = (err: Error | undefined, output: any[]) => {
+        this.logger.log('Pulled latest server image');
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      };
+      const onProgress = (event: any) => {
+        this.logger.log('Pull progress', event);
+      };
+
+      this.docker.modem.followProgress(stream, onFinished, onProgress);
+    });
+
     this.logger.log('Successfully updated srcds image');
   }
 }

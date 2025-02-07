@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RconService } from './rcon.service';
 import { SrcdsService } from './srcds.service';
-import { parseStatsResponse, SrcdsServerMetrics } from './util/parseStatsResponse';
+import {
+  parseStatsResponse,
+  SrcdsServerMetrics,
+} from './util/parseStatsResponse';
 import { parseStatusResponse } from './util/parseStatusResponse';
 import * as client from 'prom-client';
 import { Gauge, PrometheusContentType } from 'prom-client';
@@ -89,11 +92,10 @@ export class MetricsService {
       servers.map((server) =>
         this.collectServerMetrics(
           `match${server.matchId}`,
-          27015,, // Inner port
+          27015, // Inner port
         ),
       ),
     );
-    console.log(metrics);
   }
 
   private async collectServerMetrics(
