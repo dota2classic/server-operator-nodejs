@@ -10,7 +10,7 @@ services:
     #      - RABBITMQ_DEFAULT_PASS=j#AP0M6J6Z4
     ports:
       - 5672:5672
-      - "0.0.0.0:15672:15672"
+      - '0.0.0.0:15672:15672'
   core:
     networks:
       - world_network
@@ -34,7 +34,7 @@ services:
     volumes:
       - ./configs/gameserver.yaml:/config.yaml
     ports:
-      - "0.0.0.0:5003:5003"
+      - '0.0.0.0:5003:5003'
   forum:
     networks:
       - world_network
@@ -46,7 +46,7 @@ services:
     volumes:
       - ./configs/forum.yaml:/config.yaml
     ports:
-      - "0.0.0.0:6009:6009"
+      - '0.0.0.0:6009:6009'
   redis:
     networks:
       - world_network
@@ -56,7 +56,7 @@ services:
     command: [ redis-server, /usr/local/etc/redis/redis.conf ]
 
     ports:
-      - "0.0.0.0:6379:6379"
+      - '0.0.0.0:6379:6379'
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
   postgres:
@@ -70,7 +70,7 @@ services:
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
     ports:
-      - "0.0.0.0:5432:5432"
+      - '0.0.0.0:5432:5432'
   api:
     networks:
       - world_network
@@ -84,7 +84,7 @@ services:
       - ./configs/api.yaml:/home/bun/app/config.yaml
 
     ports:
-      - "0.0.0.0:6001:6001"
+      - '0.0.0.0:6001:6001'
   operator:
     container_name: operator
     networks:
@@ -94,14 +94,28 @@ services:
     volumes:
       - ./configs/operator.yaml:/config.yaml
       - //Users/itachi/.orbstack/run/docker.sock:/var/run/docker.sock
-    environment:
-      - RABBITMQ_DEFAULT_USER=itachi
-      - RABBITMQ_DEFAULT_PASS=j#AP0M6J6Z4
+      - srcds_artifacts_logs:/volume/logs
+      - srcds_artifacts_replays:/volume/replays
     ports:
-      - "0.0.0.0:7777:7777"
+      - '0.0.0.0:7777:7777'
+  fluentbit:
+    networks:
+      - world_network
+    container_name: fluentbit
+    image: cr.fluentbit.io/fluent/fluent-bit:2.0
+    ports:
+      - 24224:24224
+      - 24224:24224/udp
+    volumes:
+      - ./configs/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
 networks:
   srcds_network:
     driver: bridge
     external: true
   world_network:
     driver: bridge
+volumes:
+  srcds_artifacts_logs:
+    external: true
+  srcds_artifacts_replays:
+    external: true

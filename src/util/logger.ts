@@ -7,8 +7,14 @@ import { LogLevel } from '@nestjs/common';
 export class WinstonWrapper implements LoggerService {
   private winstonInstance: winston.Logger;
 
-  constructor(host: string, port: number = 24224, disabled = false) {
-    const fluentLogger = fluent.createFluentSender('gameserver ', {
+  constructor(
+    host: string,
+    port: number = 24224,
+    public readonly application: string,
+    disabled = false,
+  ) {
+    console.log(host, port, disabled);
+    const fluentLogger = fluent.createFluentSender('gameserver', {
       host: host,
       port: port,
       timeout: 3.0,
@@ -87,11 +93,14 @@ export class WinstonWrapper implements LoggerService {
         ...message,
         ...optionalParams[0],
         context: optionalParams[1],
+        applicat,
+        ion: this.application,
       };
     } else if (optionalParams.length === 1) {
       message = {
         ...message,
         context: optionalParams[0],
+        application: this.application,
       };
     }
 

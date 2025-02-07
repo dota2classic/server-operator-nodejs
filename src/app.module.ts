@@ -22,6 +22,7 @@ import { CustomMetricsMiddleware } from './middleware/custom-metrics.middleware'
 import { ReqLoggingInterceptor } from './middleware/req-logging.interceptor';
 import * as Docker from 'dockerode';
 import { DockerService } from './docker/docker.service';
+import { WinstonWrapper } from './util/logger';
 
 const EventHandlers = [
   LaunchGameServerCommandHandler,
@@ -126,6 +127,18 @@ const EventHandlers = [
       useFactory() {
         return new Docker();
       },
+    },
+    {
+      provide: 'SrcdsLogger',
+      useFactory(config: ConfigService) {
+        return new WinstonWrapper(
+          config.get('fluentbit.host'),
+          config.get('fluentbit.port'),
+          'srcds',
+          config.get('fluentbit.disabled'),
+        );
+      },
+      inject: [ConfigService],
     },
     ...EventHandlers,
   ],

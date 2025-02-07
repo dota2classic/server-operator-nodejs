@@ -12,6 +12,7 @@ import { Dota_Map } from '../gateway/shared-types/dota-map';
 import { Dota_GameMode } from '../gateway/shared-types/dota-game-mode';
 import { CommandLineConfig } from '../operator/command/launch-game-server.handler';
 import { devnullstd } from '../util/devnullstd';
+import { WinstonWrapper } from '../util/logger';
 
 @Injectable()
 export class DockerService implements OnApplicationBootstrap {
@@ -20,16 +21,8 @@ export class DockerService implements OnApplicationBootstrap {
   constructor(
     @Inject('Docker') private readonly docker: Docker,
     private readonly config: ConfigService,
+    @Inject('SrcdsLogger') private readonly srcdsLogger: WinstonWrapper,
   ) {}
-
-  //   ENV MAP=dota
-  //   ENV TV_ENABLE=1
-  //   ENV TICKRATE=30
-  // # Default all pick
-  //   ENV GAMEMODE=1
-  //   ENV LOGFILE_NAME=log.txt
-  //   ENV MATCH_BASE64={}
-  // docker run --network host -p 27015:27015 -e MATCH_BASE64=aaa dota2classic/srcds:d684
 
   // TODO:
   public async startGameServer(
@@ -46,7 +39,9 @@ export class DockerService implements OnApplicationBootstrap {
       'base64',
     );
 
-    console.log(matchBase64);
+    this.logger.log('Starting SRCDS container', {
+      matchId: matchId,
+    });
 
     const masterHost = this.config.get('srcds.masterHost');
     const network = this.config.get('srcds.network');
@@ -76,6 +71,10 @@ export class DockerService implements OnApplicationBootstrap {
           [`${exposePort + 5}/tcp`]: {},
           [`${exposePort + 5}/udp`]: {},
         },
+        Volumes: {
+          '/root/dota/logs': {},
+          '/root/dota/replays': {},
+        },
 
         HostConfig: {
           CpuQuota: 50000,
@@ -90,8 +89,8 @@ export class DockerService implements OnApplicationBootstrap {
             [`${27020}/udp`]: [{ HostPort: `${exposePort + 5}` }],
           },
           Binds: [
-            // `${this.getLogsVolumePath()}:/root/dota/logs`,
-            // `${this.getReplaysVolumePath()}:/root/dota/replays`,
+            `${this.config.get('srcds.logVolumeName')}:/root/dota/logs`,
+            `${this.config.get('srcds.replayVolumeName')}:/root/dota/replays`,
           ],
         },
         Env: [
@@ -107,10 +106,9 @@ export class DockerService implements OnApplicationBootstrap {
       },
       (e) => {
         this.logger.log('Container stopped', {
-          match_id: matchId,
+          matchId: matchId,
           serverUrl: clConfig.url,
         });
-        console.log('Callback called!', e);
       },
     );
     this.logger.log('Started game container');
@@ -124,15 +122,12 @@ export class DockerService implements OnApplicationBootstrap {
     );
   }
 
-  public async getServer(url: string) {
-    const r = await this.getRunningGameServers();
-  }
-
   public getLogsVolumePath(): string {
     return path.resolve(this.config.get('srcds.volume'), 'logs');
   }
 
   async onApplicationBootstrap() {
+    await this.createVolume();
     await this.updateServerImage();
     await this.createDockerNetwork();
   }
@@ -159,6 +154,11 @@ export class DockerService implements OnApplicationBootstrap {
 
   private getReplaysVolumePath(): string {
     return path.resolve(this.config.get('srcds.volume'), 'replays');
+  }
+
+  private async createVolume() {
+    await this.getOrCreateVolume(this.config.get('srcds.logVolumeName'));
+    await this.getOrCreateVolume(this.config.get('srcds.replayVolumeName'));
   }
 
   private async createDockerNetwork() {
@@ -209,5 +209,20 @@ export class DockerService implements OnApplicationBootstrap {
     });
 
     this.logger.log('Successfully updated srcds image');
+  }
+
+  private async getOrCreateVolume(name: string) {
+    const v = await this.docker.listVolumes();
+    let vol = v.Volumes.find((t) => t.Name === name);
+    if (!vol) {
+      // Not existing
+      await this.docker.createVolume({
+        Name: name,
+        Driver: 'local',
+      });
+      this.logger.log('Created new volume');
+    }
+
+    this.logger.log('Volume exists.');
   }
 }
