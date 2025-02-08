@@ -29,7 +29,6 @@ import { ReqLoggingInterceptor } from './middleware/req-logging.interceptor';
 import * as path from 'path';
 import { DockerService } from './docker/docker.service';
 
-@UseInterceptors(ReqLoggingInterceptor)
 @Controller()
 export class AppController {
   private readonly logger = new Logger('AppController');
@@ -95,6 +94,7 @@ export class AppController {
     return 'hey';
   }
 
+  @UseInterceptors(ReqLoggingInterceptor)
   @Post('/failed_match')
   async failedMatch(@Body() d: MatchFailedOnSRCDS) {
     this.logger.log('Match failed to start', {
@@ -120,6 +120,7 @@ export class AppController {
     );
   }
 
+  @UseInterceptors(ReqLoggingInterceptor)
   @Post('/player_abandon')
   async playerAbandon(@Body() d: PlayerAbandonOnSRCDS) {
     this.logger.log('Player abandoned', {
@@ -139,6 +140,7 @@ export class AppController {
     );
   }
 
+  @UseInterceptors(ReqLoggingInterceptor)
   @Post('/player_connect')
   async playerConnect(@Body() d: PlayerConnectedOnSRCDS) {
     this.logger.log('Player connected', {
@@ -157,6 +159,7 @@ export class AppController {
     );
   }
 
+  @UseInterceptors(ReqLoggingInterceptor)
   @Post('/match_results')
   async matchResults(@Body() d: MatchFinishedOnSRCDS) {
     this.logger.log('MatchResults received', {
