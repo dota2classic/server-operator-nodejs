@@ -24,7 +24,6 @@ import { MatchFailedEvent } from './gateway/events/match-failed.event';
 import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
 import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.event';
 import { PlayerConnectedEvent } from './gateway/events/srcds/player-connected.event';
-import { SrcdsService } from './srcds.service';
 import { MatchStatusService } from './match-status.service';
 import { ReqLoggingInterceptor } from './middleware/req-logging.interceptor';
 import * as path from 'path';
@@ -36,7 +35,6 @@ export class AppController {
   private readonly logger = new Logger('AppController');
 
   constructor(
-    private readonly srcdsService: SrcdsService,
     private readonly cbus: CommandBus,
     private readonly ebus: EventBus,
     private readonly matchStatusService: MatchStatusService,

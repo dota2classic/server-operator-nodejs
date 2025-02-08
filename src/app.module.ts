@@ -12,7 +12,6 @@ import configuration from './configuration';
 import { ReplayService } from './replay.service';
 import { RconService } from './rcon.service';
 import { RunRconHandler } from './operator/command/run-rcon.handler';
-import { SrcdsService } from './srcds.service';
 import { RmqOptions } from '@nestjs/microservices/interfaces/microservice-configuration.interface';
 import { MatchStatusService } from './match-status.service';
 import { EventsController } from './events.controller';
@@ -23,10 +22,12 @@ import { ReqLoggingInterceptor } from './middleware/req-logging.interceptor';
 import * as Docker from 'dockerode';
 import { DockerService } from './docker/docker.service';
 import { WinstonWrapper } from './util/logger';
+import { GameServerNotStartedHandler } from './operator/event-handler/server-actualization-requested.handler';
 
 const EventHandlers = [
   LaunchGameServerCommandHandler,
   KillServerRequestedEventHandler,
+  GameServerNotStartedHandler,
   RunRconHandler,
 ];
 
@@ -117,7 +118,6 @@ const EventHandlers = [
     AppService,
     ReplayService,
     RconService,
-    SrcdsService,
     MatchStatusService,
     MetricsService,
     ReqLoggingInterceptor,

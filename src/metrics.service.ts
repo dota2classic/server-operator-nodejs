@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RconService } from './rcon.service';
-import { SrcdsService } from './srcds.service';
 import {
   parseStatsResponse,
   SrcdsServerMetrics,
@@ -38,7 +37,6 @@ export class MetricsService {
   constructor(
     private readonly config: ConfigService,
     private readonly rconService: RconService,
-    private readonly srcdsService: SrcdsService,
     private readonly pushgateway: client.Pushgateway<PrometheusContentType>,
     private readonly docker: DockerService,
   ) {

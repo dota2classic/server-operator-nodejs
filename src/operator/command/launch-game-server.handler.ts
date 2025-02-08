@@ -5,7 +5,6 @@ import {
   LaunchGameServerCommand,
 } from 'src/gateway/commands/LaunchGameServer/launch-game-server.command';
 import { ConfigService } from '@nestjs/config';
-import { SrcdsService } from '../../srcds.service';
 import { LaunchGameServerNewResponse } from './launch-game-server-new.response';
 import { getFreePort } from '../../util/getFreePort';
 import { DockerService } from '../../docker/docker.service';
@@ -24,7 +23,6 @@ export class LaunchGameServerCommandHandler
   private readonly logger = new Logger(LaunchGameServerCommand.name);
 
   constructor(
-    private readonly srcdsService: SrcdsService,
     private readonly config: ConfigService,
     private readonly docker: DockerService,
   ) {}

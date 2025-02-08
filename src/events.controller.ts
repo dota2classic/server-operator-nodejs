@@ -10,16 +10,15 @@ import { LaunchGameServerCommand } from './gateway/commands/LaunchGameServer/lau
 import { LaunchGameServerNewResponse } from './operator/command/launch-game-server-new.response';
 import { construct } from './gateway/util/construct';
 import { SrcdsServerStartedEvent } from './gateway/events/srcds-server-started.event';
-import { SrcdsService } from './srcds.service';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { KillServerRequestedEvent } from './gateway/events/gs/kill-server-requested.event';
+import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
 
 @Controller()
 export class EventsController {
   private readonly logger = new Logger('EventsController');
 
   constructor(
-    private readonly srcdsService: SrcdsService,
     private readonly cbus: CommandBus,
     private readonly ebus: EventBus,
     @Inject('RMQ') private readonly rmq: ClientProxy,
@@ -56,6 +55,15 @@ export class EventsController {
   @MessagePattern(KillServerRequestedEvent.name)
   async KillServerRequestedEvent(query: KillServerRequestedEvent) {
     return this.ebus.publish(construct(KillServerRequestedEvent, query));
+  }
+
+  @MessagePattern(ServerActualizationRequestedEvent.name)
+  async ServerActualizationRequestedEvent(
+    query: ServerActualizationRequestedEvent,
+  ) {
+    return this.ebus.publish(
+      construct(ServerActualizationRequestedEvent, query),
+    );
   }
 
   // @MessagePattern(RunRconCommand.name)

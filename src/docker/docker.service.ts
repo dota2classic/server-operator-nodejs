@@ -115,7 +115,7 @@ export class DockerService implements OnApplicationBootstrap {
     this.logger.log('Started game container');
   }
 
-  public async stopGameServer(matchId: number) {
+  public async ____stopGameServer(matchId: number) {
     const some = await this.docker.listContainers();
     const regex = new RegExp(`\/match${matchId}`);
     const container = some.find(
