@@ -19,9 +19,6 @@ export class GameServerNotStartedHandler
 
   async handle(event: ServerActualizationRequestedEvent) {
     const host = event.url.split(':')[0];
-    this.logger.log(
-      `Actualization requested for server ${event.url}. Handling? ${this.config.get('srcds.host') === host}`,
-    );
     if (this.config.get('srcds.host') !== host) return;
 
     const running = await this.docker.getRunningGameServers();
@@ -31,6 +28,7 @@ export class GameServerNotStartedHandler
     // All good
     if (container) return;
 
+    this.logger.log('Sending event that server is dead');
     // Server not running, close it
     this.ebus.publish(
       new ServerStatusEvent(event.url, false, undefined, undefined),
