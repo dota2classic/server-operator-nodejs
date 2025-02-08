@@ -12,6 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import { DockerService } from './docker/docker.service';
 import { MatchmakingMode } from './gateway/shared-types/matchmaking-mode';
 import { DockerServerWrapper } from './docker/docker-server-wrapper';
+import { DockerContainerMetrics } from './metric/docker-container.metrics';
 
 export interface CleanPlayerMetric {
   steam_id: string;
@@ -33,6 +34,11 @@ export class MetricsService {
   private pingGauge: Gauge<string>;
   private lossGauge: Gauge<string>;
   private playerCountGauge: Gauge<string>;
+
+  // docker metrics
+  private dockerCpuGauge: Gauge<string>;
+  private dockerRamUsageGauge: Gauge<string>;
+  private dockerThrottlingCpuGauge: Gauge<string>;
 
   constructor(
     private readonly config: ConfigService,
@@ -81,6 +87,24 @@ export class MetricsService {
       help: 'app_concurrent_metrics_help',
       labelNames: ['server_url', 'lobby_type'],
     });
+
+    this.dockerCpuGauge = new Gauge<string>({
+      name: 'srcds_docker_cpu',
+      help: 'app_concurrent_metrics_help',
+      labelNames: ['server_url', 'lobby_type'],
+    });
+
+    this.dockerRamUsageGauge = new Gauge<string>({
+      name: 'srcds_docker_ram',
+      help: 'app_concurrent_metrics_help',
+      labelNames: ['server_url', 'lobby_type'],
+    });
+
+    this.dockerThrottlingCpuGauge = new Gauge<string>({
+      name: 'srcds_docker_cpu_throttling',
+      help: 'app_concurrent_metrics_help',
+      labelNames: ['server_url', 'lobby_type'],
+    });
   }
 
   // every 2 seconds
@@ -96,7 +120,7 @@ export class MetricsService {
   private async collectSrcdsMetrics() {
     const servers = await this.docker.getRunningGameServers();
     // servers.forEach(server => this.collectPlayerMetrics(this.config.get('')))
-    const metrics = await Promise.all(
+    await Promise.all(
       servers.map(async (server) => {
         const metric = await this.collectServerMetrics(
           `match${server.matchId}`,
@@ -107,8 +131,11 @@ export class MetricsService {
           `match${server.matchId}`,
           27015, // Inner port
         );
+        const containerMetrics = await this.docker.containerMetrics(server);
+
+        // console.log(containerMetrics)
         if (metric) {
-          this.saveMetrics(server, metric, playerMetric);
+          this.saveMetrics(server, metric, playerMetric, containerMetrics);
         }
       }),
     );
@@ -118,6 +145,7 @@ export class MetricsService {
     server: DockerServerWrapper,
     metric: SrcdsServerMetrics,
     pm: CleanPlayerMetric[],
+    dockerMetrics: DockerContainerMetrics,
   ) {
     this.cpuGauge
       .labels(server.serverUrl, MatchmakingMode[server.lobbyType])
@@ -146,6 +174,25 @@ export class MetricsService {
     this.pingGauge
       .labels(server.serverUrl, MatchmakingMode[server.lobbyType])
       .set(pm.length ? pm.reduce((a, b) => a + b.ping, 0) / pm.length : 0);
+
+    // Docker
+
+    this.dockerCpuGauge
+      .labels(server.serverUrl, MatchmakingMode[server.lobbyType])
+      .set(dockerMetrics.cpu_usage);
+
+    this.dockerThrottlingCpuGauge
+      .labels(server.serverUrl, MatchmakingMode[server.lobbyType])
+      .set(dockerMetrics.throttling);
+
+    this.dockerRamUsageGauge
+      .labels(server.serverUrl, MatchmakingMode[server.lobbyType])
+      .set(dockerMetrics.ram_usage);
+  }
+
+  private async collectContainerMetrics(container: DockerServerWrapper) {
+    // container.matchId
+    // this.docker.docker
   }
 
   private async collectServerMetrics(
@@ -155,10 +202,7 @@ export class MetricsService {
     return await this.rconService
       .executeRcon(host, port, 'stats')
       .then(parseStatsResponse)
-      .catch((e) => {
-        console.error(e);
-        return undefined;
-      });
+      .catch(() => undefined);
   }
 
   private async collectPlayerMetrics(

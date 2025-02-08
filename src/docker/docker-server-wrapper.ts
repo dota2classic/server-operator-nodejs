@@ -10,7 +10,7 @@ export class DockerServerWrapper {
   public readonly serverUrl: string;
   public readonly lobbyType: MatchmakingMode;
 
-  constructor(private readonly container: Dockerode.ContainerInfo) {
+  constructor(public readonly container: Dockerode.ContainerInfo) {
     this.matchId = parseInt(
       container.Labels[DockerServerWrapper.MATCH_ID_LABEL],
     );

@@ -13,6 +13,7 @@ import { Dota_GameMode } from '../gateway/shared-types/dota-game-mode';
 import { CommandLineConfig } from '../operator/command/launch-game-server.handler';
 import { devnullstd } from '../util/devnullstd';
 import { WinstonWrapper } from '../util/logger';
+import { DockerContainerMetrics } from '../metric/docker-container.metrics';
 
 @Injectable()
 export class DockerService implements OnApplicationBootstrap {
@@ -113,6 +114,31 @@ export class DockerService implements OnApplicationBootstrap {
       },
     );
     this.logger.log('Started game container');
+  }
+
+  public async containerMetrics(dsw: DockerServerWrapper) {
+    const container = await this.docker.getContainer(dsw.container.Id);
+    const stats = await container.stats({ stream: false });
+
+    const cpuD =
+      stats.cpu_stats.cpu_usage.total_usage -
+      stats.precpu_stats.cpu_usage.total_usage;
+    const systemcpuD =
+      stats.cpu_stats.system_cpu_usage - stats.precpu_stats.system_cpu_usage;
+
+    const cpus = stats.cpu_stats.online_cpus;
+
+    const cpuUsage = (cpus * cpuD) / systemcpuD;
+
+    const metr: DockerContainerMetrics = {
+      cpu_usage: cpuUsage,
+      ram_usage: stats.memory_stats.usage / stats.memory_stats.limit,
+      throttling:
+        stats.cpu_stats.throttling_data.throttled_periods /
+        stats.cpu_stats.throttling_data.periods,
+    };
+
+    return metr;
   }
 
   public async ____stopGameServer(matchId: number) {
