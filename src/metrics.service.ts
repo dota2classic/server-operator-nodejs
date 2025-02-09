@@ -112,9 +112,14 @@ export class MetricsService {
   private async collectMetrics() {
     await this.collectSrcdsMetrics();
 
-    await this.pushgateway.pushAdd({
+    await this.pushgateway.push({
       jobName: 'server-operator-nodejs',
+      groupings: {
+        host: this.config.get('host'),
+      },
     });
+
+    // this.pushgateway.push()
   }
 
   private async collectSrcdsMetrics() {
