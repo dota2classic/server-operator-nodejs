@@ -94,6 +94,7 @@ export class DockerService implements OnApplicationBootstrap {
           Binds: [
             `${this.config.get('srcds.logVolumeName')}:/root/dota/logs`,
             `${this.config.get('srcds.replayVolumeName')}:/root/dota/replays`,
+            `${this.config.get('srcds.dumpVolumeName')}:/tmp/dumps`,
           ],
         },
         Env: [
