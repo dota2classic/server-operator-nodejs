@@ -14,6 +14,7 @@ import { CommandLineConfig } from '../operator/command/launch-game-server.handle
 import { devnullstd } from '../util/devnullstd';
 import { WinstonWrapper } from '../util/logger';
 import { DockerContainerMetrics } from '../metric/docker-container.metrics';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class DockerService implements OnApplicationBootstrap {
@@ -155,8 +156,15 @@ export class DockerService implements OnApplicationBootstrap {
 
   async onApplicationBootstrap() {
     await this.createVolume();
-    await this.updateServerImage();
+    await this.updateImage(this.config.get('srcds.serverImage'));
     await this.createDockerNetwork();
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  public async checkForUpdates() {
+    this.logger.log('Running scheduled update check');
+    // First check for server image
+    await this.updateImage(this.config.get('srcds.serverImage'));
   }
 
   public async haveFreeSlot(): Promise<boolean> {
@@ -213,12 +221,10 @@ export class DockerService implements OnApplicationBootstrap {
     });
   }
 
-  private async updateServerImage() {
+  private async updateImage(image: string): Promise<boolean> {
     this.logger.log('Pulling latest srcds image...');
     await new Promise<void>(async (resolve, reject) => {
-      const stream = await this.docker.pull(
-        this.config.get('srcds.serverImage'),
-      );
+      const stream = await this.docker.pull(image);
 
       const onFinished = (err: Error | undefined, output: any[]) => {
         this.logger.log('Pulled latest server image');
@@ -236,6 +242,7 @@ export class DockerService implements OnApplicationBootstrap {
     });
 
     this.logger.log('Successfully updated srcds image');
+    return true;
   }
 
   private async getOrCreateVolume(name: string) {

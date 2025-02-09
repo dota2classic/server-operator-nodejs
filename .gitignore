@@ -5,6 +5,7 @@
 runscreen.sh
 # Logs
 logs
+install.sh
 *.log
 logs.sh
 npm-debug.log*
