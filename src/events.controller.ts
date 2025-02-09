@@ -44,12 +44,13 @@ export class EventsController {
       return;
     }
 
-    this.logger.log('Acked run command for match', { match_id: data.matchId });
     channel.ack(originalMsg);
+    this.logger.log('Acked run command for match', { match_id: data.matchId });
 
-    await this.ebus.publish(
+    this.ebus.publish(
       new SrcdsServerStartedEvent(result.server, data.matchId, data.info),
     );
+    this.logger.log('Published event that server has started');
   }
 
   @MessagePattern(KillServerRequestedEvent.name)
