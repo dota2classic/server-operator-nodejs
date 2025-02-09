@@ -222,6 +222,8 @@ export class AppController {
         error: e,
         match_id: d.matchId,
       });
+      console.error(e);
+      e.printStackTrace();
     }
 
     this.matchStatusService.matchResults(g);
