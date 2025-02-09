@@ -6,7 +6,7 @@ import {
 } from './util/parseStatsResponse';
 import { parseStatusResponse } from './util/parseStatusResponse';
 import * as client from 'prom-client';
-import { Gauge, PrometheusContentType } from 'prom-client';
+import { Gauge, PrometheusContentType, Registry } from 'prom-client';
 import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { DockerService } from './docker/docker.service';
@@ -119,7 +119,11 @@ export class MetricsService {
       },
     });
 
-    // this.pushgateway.push()
+    // @ts-ignore
+    const registry: Registry = this.pushgateway['registry'];
+    if (!registry) return;
+
+    registry.resetMetrics();
   }
 
   private async collectSrcdsMetrics() {
