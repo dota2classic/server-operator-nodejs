@@ -21,7 +21,7 @@ const isPortFree = async (port: number) => {
 };
 
 export async function getFreePort(): Promise<number> {
-  for (let port = 27015; port < 29000; port += 10) {
+  for (let port = 27025; port < 29000; port += 10) {
     if (await isPortFree(port)) {
       return port;
     }
