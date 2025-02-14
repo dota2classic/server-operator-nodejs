@@ -6,7 +6,7 @@ const isPortFree = async (port: number) => {
     server.once('error', function (err: { code?: string }) {
       if (err.code === 'EADDRINUSE') {
         // port is currently in use
-        res(false;);
+        res(false);
       }
     });
 
