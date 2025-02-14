@@ -25,7 +25,7 @@ export async function getFreePort(): Promise<number> {
     }
   }
 
-  console.war'Had to fallback to random free port't;")
+  console.warn('Had to fallback to random free port');
   return new Promise<number>((res) => {
     const srv = net.createServer();
     srv.listen(0, () => {
