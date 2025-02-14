@@ -3,15 +3,17 @@ import * as net from 'net';
 const isPortFree = async (port: number) => {
   return new Promise<boolean>((res) => {
     const server = net.createServer();
-    server.once('error', function (err) {
+    server.once('error', function (err: { code?: string }) {
       if (err.code === 'EADDRINUSE') {
         // port is currently in use
+        res(false;);
       }
     });
 
     server.once('listening', function () {
       // close the server if listening doesn't fail
       server.close();
+      res(true);
     });
 
     server.listen(port);
