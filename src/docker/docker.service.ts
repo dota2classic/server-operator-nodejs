@@ -35,8 +35,10 @@ export class DockerService implements OnApplicationBootstrap {
     logfileName: string,
     tickrate: number,
     matchId: number,
-    exposePort: number,
+    gamePort: number,
   ) {
+    const tvPort = gamePort + 5;
+
     const matchBase64 = Buffer.from(JSON.stringify(clConfig)).toString(
       'base64',
     );
@@ -64,15 +66,15 @@ export class DockerService implements OnApplicationBootstrap {
         //   "./logs": "./dota/logs"
         // },
         Labels: {
-          [DockerServerWrapper.SERVER_URL_LABEL]: `${this.config.get('srcds.host')}:${exposePort}`,
+          [DockerServerWrapper.SERVER_URL_LABEL]: `${this.config.get('srcds.host')}:${gamePort}`,
           [DockerServerWrapper.MATCH_ID_LABEL]: matchId.toString(),
           [DockerServerWrapper.LOBBY_TYPE_LABEL]: clConfig.info.mode.toString(),
         },
         ExposedPorts: {
-          [`${exposePort}/tcp`]: {},
-          [`${exposePort}/udp`]: {},
-          [`${exposePort + 5}/tcp`]: {},
-          [`${exposePort + 5}/udp`]: {},
+          [`${gamePort}/tcp`]: {},
+          [`${gamePort}/udp`]: {},
+          [`${tvPort}/tcp`]: {},
+          [`${tvPort}/udp`]: {},
         },
         Volumes: {
           '/root/dota/logs': {},
@@ -86,10 +88,15 @@ export class DockerService implements OnApplicationBootstrap {
           NetworkMode: runOnHostNetwork ? 'host' : network,
 
           PortBindings: {
-            [`${27015}/tcp`]: [{ HostPort: `${exposePort}` }],
-            [`${27015}/udp`]: [{ HostPort: `${exposePort}` }],
-            [`${27020}/tcp`]: [{ HostPort: `${exposePort + 5}` }],
-            [`${27020}/udp`]: [{ HostPort: `${exposePort + 5}` }],
+            // [`${27015}/tcp`]: [{ HostPort: `${exposePort}` }],
+            // [`${27015}/udp`]: [{ HostPort: `${exposePort}` }],
+            // [`${27020}/tcp`]: [{ HostPort: `${exposePort + 5}` }],
+            // [`${27020}/udp`]: [{ HostPort: `${exposePort + 5}` }],
+
+            [`${gamePort}/tcp`]: [{ HostPort: `${gamePort}` }],
+            [`${gamePort}/udp`]: [{ HostPort: `${gamePort}` }],
+            [`${tvPort}/tcp`]: [{ HostPort: `${tvPort}` }],
+            [`${tvPort}/udp`]: [{ HostPort: `${tvPort}` }],
           },
           Binds: [
             `${this.config.get('srcds.logVolumeName')}:/root/dota/logs`,
@@ -98,6 +105,8 @@ export class DockerService implements OnApplicationBootstrap {
           ],
         },
         Env: [
+          `GAME_PORT=${gamePort}`,
+          `TV_PORT=${tvPort}`,
           `MATCH_BASE64=${matchBase64}`,
           `MAP=${map}`,
           `TICKRATE=${tickrate}`,
