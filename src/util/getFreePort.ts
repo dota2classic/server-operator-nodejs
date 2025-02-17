@@ -20,12 +20,23 @@ const isPortFree = async (port: number) => {
   });
 };
 
+function randRange(min: number, max: number): number {
+  return Math.random() * (max - min) + min;
+}
+
 export async function getFreePort(): Promise<number> {
   // for (let port = 27025; port < 29000; port += 10) {
   //   if (await isPortFree(port)) {
   //     return port;
   //   }
   // }
+
+  for (let tryCnt = 0; tryCnt < 100; tryCnt++) {
+    const randomPort = randRange(20000, 32760); // Must be inside signed short range
+    if (await isPortFree(randomPort)) {
+      return randomPort;
+    }
+  }
 
   console.warn('Had to fallback to random free port');
   return new Promise<number>((res) => {
