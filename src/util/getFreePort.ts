@@ -32,7 +32,7 @@ export async function getFreePort(): Promise<number> {
   // }
 
   for (let tryCnt = 0; tryCnt < 100; tryCnt++) {
-    const randomPort = randRange(20000, 32760); // Must be inside signed short range
+    const randomPort = Math.round(randRange(20000, 32760)); // Must be inside signed short range
     if (await isPortFree(randomPort)) {
       return randomPort;
     }
