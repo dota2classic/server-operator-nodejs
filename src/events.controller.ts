@@ -47,6 +47,7 @@ export class EventsController {
     channel.ack(originalMsg);
     this.logger.log('Acked run command for match', { match_id: data.matchId });
 
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     this.ebus.publish(
       new SrcdsServerStartedEvent(result.server, data.matchId, data.info),
     );

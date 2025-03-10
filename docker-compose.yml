@@ -108,6 +108,18 @@ services:
       - 24224:24224/udp
     volumes:
       - ./configs/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+  jaeger:
+    networks:
+      - world_network
+    restart: always
+    image: jaegertracing/all-in-one:latest
+    mem_limit: "1GB"
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+      - "4317:4317"
+    environment:
+      - LOG_LEVEL=debug
 networks:
   srcds_network:
     driver: bridge
