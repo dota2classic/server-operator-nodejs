@@ -13,14 +13,22 @@ export class KillServerRequestedEventHandler
   constructor(private readonly docker: DockerService) {}
 
   async handle(event: KillServerRequestedEvent) {
-    throw 'Not implemented: kill server';
-    // const servers = await this.docker.getRunningGameServers();
-    // const proc = servers.find(it => it.match.url === event.url);
-    // if(proc){
-    //   process.kill(proc.pid);
-    //   this.logger.log(`Killed running server: requested`, { pid: proc.pid, url: event.url });
-    // } else {
-    //   this.logger.warn(`Can't find server to kill`, { url: event.url });
-    // }
+    const runningServers = await this.docker.getRunningGameServers();
+    const server = runningServers.find(
+      (server) => server.serverUrl === event.url,
+    );
+    if (!server) return;
+
+    try {
+      await this.docker.stopGameServer(server.matchId);
+      this.logger.log(
+        `Successfully stopped server for match id ${server.matchId} ${server.serverUrl}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `Error trying to stop container ${server.serverUrl} ${server.matchId}`,
+        e,
+      );
+    }
   }
 }

@@ -152,12 +152,14 @@ export class DockerService implements OnApplicationBootstrap {
     return metr;
   }
 
-  public async ____stopGameServer(matchId: number) {
+  public async stopGameServer(matchId: number) {
     const some = await this.docker.listContainers();
     const regex = new RegExp(`\/match${matchId}`);
-    const container = some.find(
+    const containerInfo = some.find(
       (t) => t.Names.findIndex((name) => regex.test(name)) !== -1,
     );
+    const container = this.docker.getContainer(containerInfo.Id);
+    return new Promise((resolve) => container.stop(resolve));
   }
 
   public getLogsVolumePath(): string {
