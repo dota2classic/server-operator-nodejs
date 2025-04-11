@@ -116,9 +116,7 @@ export class AppController {
         ),
       );
     }
-    this.ebus.publish(
-      new ServerStatusEvent(d.server, false, undefined, undefined),
-    );
+    this.ebus.publish(new ServerStatusEvent(d.server, false));
   }
 
   @UseInterceptors(ReqLoggingInterceptor)

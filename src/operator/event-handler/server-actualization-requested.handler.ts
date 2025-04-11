@@ -30,8 +30,6 @@ export class GameServerNotStartedHandler
 
     this.logger.log('Sending event that server is dead');
     // Server not running, close it
-    this.ebus.publish(
-      new ServerStatusEvent(event.url, false, undefined, undefined),
-    );
+    this.ebus.publish(new ServerStatusEvent(event.url, false));
   }
 }
