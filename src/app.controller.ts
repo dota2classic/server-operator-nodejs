@@ -16,7 +16,6 @@ import {
 } from './operator/dto';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 import { itemIdByName } from './gateway/constants/items';
-import { GameResultsEvent } from './gateway/events/gs/game-results.event';
 import { fillAdditionalDataFromLog } from './util/parseLogFile';
 import { DotaConnectionState } from './gateway/shared-types/dota-player-connection-state';
 import { PlayerId } from './gateway/shared-types/player-id';
@@ -28,6 +27,7 @@ import { MatchStatusService } from './match-status.service';
 import { ReqLoggingInterceptor } from './middleware/req-logging.interceptor';
 import * as path from 'path';
 import { DockerService } from './docker/docker.service';
+import { SrcdsMapper } from './mapper/srcds.mapper';
 
 @Controller()
 export class AppController {
@@ -38,6 +38,7 @@ export class AppController {
     private readonly ebus: EventBus,
     private readonly matchStatusService: MatchStatusService,
     private readonly docker: DockerService,
+    private readonly mapper: SrcdsMapper,
   ) {}
 
   @Post('/live_match')
@@ -166,44 +167,7 @@ export class AppController {
       results: d,
       match_id: d.matchId,
     });
-    const g = new GameResultsEvent(
-      d.matchId,
-      d.winner,
-      d.duration,
-      d.gameMode,
-      d.type,
-      d.timestamp,
-      d.server,
-      d.players.map((p) => ({
-        steam_id: p.steam_id.toString(),
-        team: p.team,
-        kills: p.kills,
-        deaths: p.deaths,
-        assists: p.assists,
-        level: p.level,
-
-        item0: itemIdByName(p.items[0]),
-        item1: itemIdByName(p.items[1]),
-        item2: itemIdByName(p.items[2]),
-        item3: itemIdByName(p.items[3]),
-        item4: itemIdByName(p.items[4]),
-        item5: itemIdByName(p.items[5]),
-
-        gpm: p.gpm,
-        xpm: p.gpm,
-        last_hits: p.last_hits,
-        denies: p.denies,
-        abandoned:
-          p.connection === DotaConnectionState.DOTA_CONNECTION_STATE_ABANDONED,
-        networth: p.networth,
-
-        heroDamage: 0,
-        heroHealing: 0,
-        towerDamage: 0,
-
-        hero: p.hero,
-      })),
-    );
+    const g = this.mapper.mapResults(d);
 
     // Make sure that log file is fully saved.
     await new Promise((resolve) => setTimeout(resolve, 5000));

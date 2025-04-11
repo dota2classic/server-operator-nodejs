@@ -23,6 +23,7 @@ import * as Docker from 'dockerode';
 import { DockerService } from './docker/docker.service';
 import { WinstonWrapper } from './util/logger';
 import { GameServerNotStartedHandler } from './operator/event-handler/server-actualization-requested.handler';
+import { SrcdsMapper } from './mapper/srcds.mapper';
 
 const EventHandlers = [
   LaunchGameServerCommandHandler,
@@ -122,6 +123,7 @@ const EventHandlers = [
     MetricsService,
     ReqLoggingInterceptor,
     DockerService,
+    SrcdsMapper,
     {
       provide: 'Docker',
       useFactory() {
