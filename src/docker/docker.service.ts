@@ -181,7 +181,6 @@ export class DockerService implements OnApplicationBootstrap {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   public async deadContainerWatchdog() {
-    // PreMinidumpCallback: updating dump comment
     const servers = await this.getRunningGameServers();
     for (let server of servers) {
       const logs = await this.docker
@@ -189,7 +188,11 @@ export class DockerService implements OnApplicationBootstrap {
         .logs({ tail: 100, stdout: true, stderr: true })
         .then((it) => it.toString());
 
-      console.log(logs);
+      if (logs.includes('PreMinidumpCallback: updating dump comment')) {
+        this.logger.error(
+          `DEAD CONTAINER DETECTED: ${server.matchId} host ${server.serverUrl}`,
+        );
+      }
     }
   }
 
