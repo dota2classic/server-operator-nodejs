@@ -179,6 +179,20 @@ export class DockerService implements OnApplicationBootstrap {
     await this.updateImage(this.config.get('srcds.serverImage'));
   }
 
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  public async deadContainerWatchdog() {
+    // PreMinidumpCallback: updating dump comment
+    const servers = await this.getRunningGameServers();
+    for (let server of servers) {
+      const logs = await this.docker
+        .getContainer(server.container.Id)
+        .logs({ tail: 100 })
+        .then((it) => it.toString());
+
+      console.log(logs);
+    }
+  }
+
   public async haveFreeSlot(): Promise<boolean> {
     return (
       this.config.get('srcds.pool') -
