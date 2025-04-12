@@ -74,12 +74,12 @@ export class AppController {
             health: h.hero_data.health,
             max_health: h.hero_data.max_health,
 
-            item0: itemIdByName(h.hero_data.items[0].replace('item_', '')),
-            item1: itemIdByName(h.hero_data.items[1].replace('item_', '')),
-            item2: itemIdByName(h.hero_data.items[2].replace('item_', '')),
-            item3: itemIdByName(h.hero_data.items[3].replace('item_', '')),
-            item4: itemIdByName(h.hero_data.items[4].replace('item_', '')),
-            item5: itemIdByName(h.hero_data.items[5].replace('item_', '')),
+            item0: itemIdByName(h.hero_data.items[0]),
+            item1: itemIdByName(h.hero_data.items[1]),
+            item2: itemIdByName(h.hero_data.items[2]),
+            item3: itemIdByName(h.hero_data.items[3]),
+            item4: itemIdByName(h.hero_data.items[4]),
+            item5: itemIdByName(h.hero_data.items[5]),
 
             kills: h.hero_data.kills,
             deaths: h.hero_data.deaths,
