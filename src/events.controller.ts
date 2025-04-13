@@ -48,10 +48,14 @@ export class EventsController {
     this.logger.log('Acked run command for match', { match_id: data.matchId });
 
     await new Promise((resolve) => setTimeout(resolve, 5000));
-    this.ebus.publish(
+    this.rmq.emit(
+      SrcdsServerStartedEvent.name,
       new SrcdsServerStartedEvent(result.server, data.matchId, data.info),
     );
-    this.logger.log('Published event that server has started');
+    this.logger.log('GameServer started', {
+      match_id: data.matchId,
+      server_url: result.server,
+    });
   }
 
   @MessagePattern(KillServerRequestedEvent.name)

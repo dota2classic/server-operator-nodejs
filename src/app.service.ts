@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { EventBus, ofType } from '@nestjs/cqrs';
 import { GameServerDiscoveredEvent } from './gateway/events/game-server-discovered.event';
-import { Dota2Version } from './gateway/shared-types/dota2version';
 import { ClientProxy } from '@nestjs/microservices';
 import { ServerStatusEvent } from './gateway/events/gs/server-status.event';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
@@ -15,14 +14,6 @@ import * as http from 'http';
 import { PlayerConnectedEvent } from './gateway/events/srcds/player-connected.event';
 import { SrcdsServerStartedEvent } from './gateway/events/srcds-server-started.event';
 import { MatchStatusService } from './match-status.service';
-
-export interface ServerConfiguration {
-  path: string;
-  host: string;
-  port: number;
-  url: string;
-  version: Dota2Version;
-}
 
 @Injectable()
 export class AppService
