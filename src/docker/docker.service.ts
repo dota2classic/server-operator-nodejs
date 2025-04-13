@@ -12,7 +12,6 @@ import { Dota_Map } from '../gateway/shared-types/dota-map';
 import { Dota_GameMode } from '../gateway/shared-types/dota-game-mode';
 import { CommandLineConfig } from '../operator/command/launch-game-server.handler';
 import { devnullstd } from '../util/devnullstd';
-import { WinstonWrapper } from '../util/logger';
 import { DockerContainerMetrics } from '../metric/docker-container.metrics';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
@@ -23,7 +22,6 @@ export class DockerService implements OnApplicationBootstrap {
   constructor(
     @Inject('Docker') private readonly docker: Docker,
     private readonly config: ConfigService,
-    @Inject('SrcdsLogger') private readonly srcdsLogger: WinstonWrapper,
   ) {}
 
   // TODO:

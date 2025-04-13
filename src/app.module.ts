@@ -21,7 +21,8 @@ import { CustomMetricsMiddleware } from './middleware/custom-metrics.middleware'
 import { ReqLoggingInterceptor } from './middleware/req-logging.interceptor';
 import * as Docker from 'dockerode';
 import { DockerService } from './docker/docker.service';
-import { WinstonWrapper } from './util/logger';
+// import { WinstonWrapper } from './util/logger';
+import { WinstonWrapper } from '@dota2classic/nest_logger';
 import { GameServerNotStartedHandler } from './operator/event-handler/server-actualization-requested.handler';
 import { SrcdsMapper } from './mapper/srcds.mapper';
 

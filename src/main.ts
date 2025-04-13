@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Transport } from '@nestjs/microservices';
-import { WinstonWrapper } from './util/logger';
+import { WinstonWrapper } from '@dota2classic/nest_logger';
 import { ConfigService } from '@nestjs/config';
 import configuration from './configuration';
 import { Logger } from '@nestjs/common';
