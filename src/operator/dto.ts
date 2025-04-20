@@ -61,6 +61,13 @@ export interface PlayerAbandonOnSRCDS {
   server: string;
 }
 
+export interface PlayerNotLoadedOnSRCDS {
+  match_id: number;
+  steam_id: number;
+  mode: MatchmakingMode;
+  server: string;
+}
+
 export interface PlayerConnectedOnSRCDS {
   match_id: number;
   steam_id: number;

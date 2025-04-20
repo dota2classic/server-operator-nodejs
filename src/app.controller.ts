@@ -13,6 +13,7 @@ import {
   MatchFinishedOnSRCDS,
   PlayerAbandonOnSRCDS,
   PlayerConnectedOnSRCDS,
+  PlayerNotLoadedOnSRCDS,
 } from './operator/dto';
 import { LiveMatchUpdateEvent } from './gateway/events/gs/live-match-update.event';
 import { itemIdByName } from './gateway/constants/items';
@@ -117,6 +118,24 @@ export class AppController {
       );
     }
     this.ebus.publish(new ServerStatusEvent(d.server, false));
+  }
+
+  @UseInterceptors(ReqLoggingInterceptor)
+  @Post('/player_not_loaded')
+  async playerNotLoaded(@Body() d: PlayerNotLoadedOnSRCDS) {
+    this.logger.log('Player not loaded', {
+      match_id: d.match_id,
+      steam_id: d.steam_id,
+      mode: d.mode,
+      server: d.server
+    });
+    this.matchStatusService.matchFailed(
+      new MatchFailedEvent(
+        d.match_id,
+        d.server,
+        [new PlayerId(d.steam_id + "")]
+      ),
+    );
   }
 
   @UseInterceptors(ReqLoggingInterceptor)
