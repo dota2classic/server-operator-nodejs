@@ -37,6 +37,8 @@ export class DockerService implements OnApplicationBootstrap {
   ) {
     const tvPort = gamePort + 5;
 
+    // Initial setup
+    clConfig.info.players.forEach((plr) => (plr['ignore'] = false));
     const matchBase64 = Buffer.from(JSON.stringify(clConfig)).toString(
       'base64',
     );
