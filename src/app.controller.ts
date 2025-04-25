@@ -43,7 +43,7 @@ export class AppController {
   ) {}
 
   @Post('/live_match')
-  findAll(@Body() it: LiveMatchDto): string {
+  async liveMatchUpdate(@Body() it: LiveMatchDto): Promise<string> {
     // Propagate
 
     const mapped: LiveMatchUpdateEvent = {
@@ -127,14 +127,12 @@ export class AppController {
       match_id: d.match_id,
       steam_id: d.steam_id,
       mode: d.mode,
-      server: d.server
+      server: d.server,
     });
     this.matchStatusService.matchFailed(
-      new MatchFailedEvent(
-        d.match_id,
-        d.server,
-        [new PlayerId(d.steam_id + "")]
-      ),
+      new MatchFailedEvent(d.match_id, d.server, [
+        new PlayerId(d.steam_id + ''),
+      ]),
     );
   }
 

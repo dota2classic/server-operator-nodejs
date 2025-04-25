@@ -1,9 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  OnApplicationBootstrap,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import Docker from 'dockerode';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
@@ -183,8 +178,8 @@ export class DockerService implements OnApplicationBootstrap {
   public async deadContainerWatchdog() {
     const servers = await this.getRunningGameServers();
     for (let server of servers) {
-      const logs = await this.docker
-        .getContainer(server.container.Id)
+      const container = await this.docker.getContainer(server.container.Id);
+      const logs = await container
         .logs({ tail: 100, stdout: true, stderr: true })
         .then((it) => it.toString());
 
@@ -192,7 +187,10 @@ export class DockerService implements OnApplicationBootstrap {
         this.logger.error(
           `DEAD CONTAINER DETECTED: ${server.matchId} host ${server.serverUrl}`,
         );
-      }
+        await container.stop();
+        this.logger.warn("Had to m'Had to manually kill zombie container'_id: server.matchId })
+
+      };
     }
   }
 
