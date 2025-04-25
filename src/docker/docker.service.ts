@@ -193,7 +193,7 @@ export class DockerService implements OnApplicationBootstrap {
           `DEAD CONTAINER DETECTED: ${server.matchId} host ${server.serverUrl}`,
         );
         await container.stop();
-        this.logger.warn("Had to m'Had to manually kill zombie container", {
+        this.logger.warn('Had to manually kill zombie container', {
           match_id: server.matchId,
         });
       }
