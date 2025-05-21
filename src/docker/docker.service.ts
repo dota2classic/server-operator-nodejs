@@ -88,8 +88,7 @@ export class DockerService implements OnApplicationBootstrap {
         HostConfig: {
           CpuQuota: this.config.get('srcds.cpuQuota'),
           Memory: 1024 * 1042 * this.config.get('srcds.memory'), // 512 m
-          // AutoRemove: true, FIXME
-          AutoRemove: false,
+          AutoRemove: true,
           NetworkMode: runOnHostNetwork ? 'host' : network,
 
           PortBindings: {
@@ -108,14 +107,13 @@ export class DockerService implements OnApplicationBootstrap {
             `${this.config.get('srcds.logVolumeName')}:/root/dota/logs`,
             `${this.config.get('srcds.replayVolumeName')}:/root/dota/replays`,
             `${this.config.get('srcds.dumpVolumeName')}:/tmp/dumps`,
-            // `${configFilename}:/root/dota/cfg/match_cfg/match_info.json`,
-            `${configFilename}:/root/dota/cfg/match_info.json`,
+            // `${configFilename}:/root/dota/cfg/match_info.json`,
           ],
         },
         Env: [
           `GAME_PORT=${gamePort}`,
           `TV_PORT=${tvPort}`,
-          `MATCH_BASE64=${matchBase64}`,
+          `MATCH_ID=${matchId}`,
           `MAP=${map}`,
           `TICKRATE=${tickrate}`,
           `LOGFILE_NAME=${logfileName}`,
@@ -126,7 +124,6 @@ export class DockerService implements OnApplicationBootstrap {
         ],
       },
       (e, a) => {
-        console.log(e, a);
         this.logger.log('Container stopped', {
           matchId: matchId,
           serverUrl: schema.serverUrl,
