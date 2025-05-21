@@ -56,8 +56,7 @@ export class LaunchGameServerCommandHandler
   }
 
   private async runDedicatedServer(command: LaunchGameServerCommand) {
-    const map = command.map;
-    const gameMode = command.gameMode;
+    const { map, gameMode, matchId } = command;
 
     const freePort = await getFreePort();
     const serverUrl = `${this.config.get('srcds.host')}:${freePort}`;

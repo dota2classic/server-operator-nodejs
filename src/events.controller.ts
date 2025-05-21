@@ -50,7 +50,7 @@ export class EventsController {
     await new Promise((resolve) => setTimeout(resolve, 5000));
     this.rmq.emit(
       SrcdsServerStartedEvent.name,
-      new SrcdsServerStartedEvent(result.server, data.matchId, data.info),
+      new SrcdsServerStartedEvent(result.server, data),
     );
     this.logger.log('GameServer started', {
       match_id: data.matchId,
