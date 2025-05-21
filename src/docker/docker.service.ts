@@ -43,8 +43,9 @@ export class DockerService implements OnApplicationBootstrap {
     // const matchBase64 = Buffer.from(JSON.stringify(clConfig)).toString(
     //   'base64',
     // );
-    const matchBase64 = '52';
     const configFilename = await this.createTemporaryLaunchConfig(schema);
+
+    const matchCfgName = `${matchId}.json`;
 
     this.logger.log('Starting SRCDS container', {
       matchId: matchId,
@@ -113,7 +114,7 @@ export class DockerService implements OnApplicationBootstrap {
         Env: [
           `GAME_PORT=${gamePort}`,
           `TV_PORT=${tvPort}`,
-          `MATCH_ID=${matchId}`,
+          `MATCH_CFG_NAME=${matchCfgName}`,
           `MAP=${map}`,
           `TICKRATE=${tickrate}`,
           `LOGFILE_NAME=${logfileName}`,

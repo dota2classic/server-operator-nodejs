@@ -1,19 +1,11 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
-import {
-  GSMatchInfo,
-  LaunchGameServerCommand,
-} from 'src/gateway/commands/LaunchGameServer/launch-game-server.command';
+import { LaunchGameServerCommand } from 'src/gateway/commands/LaunchGameServer/launch-game-server.command';
 import { ConfigService } from '@nestjs/config';
 import { LaunchGameServerNewResponse } from './launch-game-server-new.response';
 import { getFreePort } from '../../util/getFreePort';
 import { DockerService } from '../../docker/docker.service';
-
-export interface CommandLineConfig {
-  url: string;
-  matchId: number;
-  info: GSMatchInfo;
-}
+import { DotaTeam } from '../../gateway/shared-types/dota-team';
 
 export interface RunServerSchema {
   matchId: number;
@@ -31,6 +23,7 @@ export interface Player {
   muted: boolean;
   ignore: boolean;
   partyId: string;
+  team: DotaTeam;
 }
 
 @CommandHandler(LaunchGameServerCommand)
@@ -59,30 +52,31 @@ export class LaunchGameServerCommandHandler
       match_id: command.matchId,
     });
 
-    return this.runDedicatedServer(command.info, command.matchId);
+    return this.runDedicatedServer(command);
   }
 
-  private async runDedicatedServer(info: GSMatchInfo, matchId: number) {
-    const map = info.map;
-    const gameMode = info.gameMode;
+  private async runDedicatedServer(command: LaunchGameServerCommand) {
+    const map = command.map;
+    const gameMode = command.gameMode;
 
     const freePort = await getFreePort();
     const serverUrl = `${this.config.get('srcds.host')}:${freePort}`;
     const tickrate = 30;
 
     const schema: RunServerSchema = {
-      matchId: matchId,
-      lobbyType: info.mode,
-      gameMode: info.gameMode,
-      roomId: info.roomId,
+      matchId: command.matchId,
+      lobbyType: command.lobbyType,
+      gameMode: command.gameMode,
+      roomId: command.roomId,
       serverUrl: serverUrl,
-      players: info.players.map((player) => ({
-        steamId: player.playerId.value,
-        subscriber: true, //fixme
+      players: command.players.map((player) => ({
+        steamId: player.steamId,
+        subscriber: player.subscriber,
         name: player.name,
-        muted: true,
+        muted: player.muted,
         ignore: false,
         partyId: player.partyId,
+        team: player.team,
       })),
     };
 
