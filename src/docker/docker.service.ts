@@ -174,7 +174,11 @@ export class DockerService implements OnApplicationBootstrap {
   }
 
   public getConfigsVolumePath(): string {
-    return path.resolve(this.config.get('srcds.volume'), 'configs');
+    const folder = path.resolve(this.config.get('srcds.volume'), 'configs');
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder);
+    }
+    return folder;
   }
 
   async onApplicationBootstrap() {
