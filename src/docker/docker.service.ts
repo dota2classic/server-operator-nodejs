@@ -82,7 +82,7 @@ export class DockerService implements OnApplicationBootstrap {
         Volumes: {
           '/root/dota/logs': {},
           '/root/dota/replays': {},
-          // '/root/dota/cfg/match_cfg': {},
+          '/root/dota/match_cfg': {},
         },
 
         HostConfig: {
@@ -103,7 +103,7 @@ export class DockerService implements OnApplicationBootstrap {
             [`${tvPort}/udp`]: [{ HostPort: `${tvPort}` }],
           },
           Binds: [
-            `${this.config.get('srcds.configVolumeName')}:/root/dota/cfg/match_cfg`,
+            `${this.config.get('srcds.configVolumeName')}:/root/dota/match_cfg`,
             `${this.config.get('srcds.logVolumeName')}:/root/dota/logs`,
             `${this.config.get('srcds.replayVolumeName')}:/root/dota/replays`,
             `${this.config.get('srcds.dumpVolumeName')}:/tmp/dumps`,
