@@ -76,11 +76,12 @@ export class ReplayService {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   private async checkUploadableLogs() {
+    await this.scanUploadableEntities('configs', 'logs', 10);
     await this.scanUploadableEntities('logs', 'logs', 50);
   }
 
   private async scanUploadableEntities(
-    entityFolder: 'logs' | 'replays',
+    entityFolder: 'logs' | 'replays' | 'configs',
     bucket: 'logs' | 'replays',
     limit: number = 100,
   ) {
@@ -106,7 +107,8 @@ export class ReplayService {
       );
       const logs = (await fs.promises.readdir(rootFolder)).slice(0, limit); // Let's do 50 at a time
       for (let entity of logs) {
-        const lstat = await fs.promises.lstat(path.join(rootFolder, entity));
+        const filePath = path.join(rootFolder, entity);
+        const lstat = await fs.promises.lstat(filePath);
         if (lstat.isDirectory()) continue;
 
         const matchId = parseInt(entity.replace(/\D+/g, ''));
@@ -125,6 +127,13 @@ export class ReplayService {
           );
           continue; // We can't touch this yet
         }
+
+        if (entityFolder === 'configs') {
+          await fs.promises.unlink(filePath);
+          this.logger.log('Removed config file ' + filePath);
+          continue;
+        }
+
         await this.uploadEntity(
           matchId,
           entity,
