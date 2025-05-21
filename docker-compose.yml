@@ -132,3 +132,5 @@ volumes:
     external: true
   srcds_artifacts_replays:
     external: true
+  srcds_artifacts_configs:
+    external: true
