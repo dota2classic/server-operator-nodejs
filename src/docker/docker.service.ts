@@ -125,7 +125,8 @@ export class DockerService implements OnApplicationBootstrap {
           `MASTER_SERVER=${runOnHostNetwork ? 'http://localhost:7777' : `http://${masterHost}:7777`}`,
         ],
       },
-      (e) => {
+      (e, a) => {
+        console.log(e, a);
         this.logger.log('Container stopped', {
           matchId: matchId,
           serverUrl: schema.serverUrl,
