@@ -18,10 +18,10 @@ export class SrcdsMapper {
       d.timestamp,
       d.server,
       d.players.map((p) => {
-        console.log(p.items);
+        const partyIndex = parties.indexOf(p.party_id);
         return {
           steam_id: p.steam_id.toString(),
-          partyIndex: parties.indexOf(p.party_id),
+          partyIndex: partyIndex + 1,
           team: p.team,
           kills: p.kills,
           deaths: p.deaths,
