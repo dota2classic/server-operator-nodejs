@@ -312,6 +312,7 @@ export class DockerService implements OnApplicationBootstrap {
       this.getConfigsVolumePath(),
       `${schema.matchId}.json`,
     );
+    console.log('Target filename: ', filename);
     await fs.promises.writeFile(filename, data, { flag: 'wx' });
     return filename;
   }
