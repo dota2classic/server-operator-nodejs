@@ -81,7 +81,7 @@ services:
       - redis
     restart: always
     volumes:
-      - ./configs/api.yaml:/home/bun/app/config.yaml
+      - ./configs/api.yaml:/config.yaml
 
     ports:
       - '0.0.0.0:6001:6001'

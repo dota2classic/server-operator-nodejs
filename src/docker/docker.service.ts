@@ -10,10 +10,11 @@ import * as path from 'path';
 import { DockerServerWrapper } from './docker-server-wrapper';
 import { Dota_Map } from '../gateway/shared-types/dota-map';
 import { Dota_GameMode } from '../gateway/shared-types/dota-game-mode';
-import { CommandLineConfig } from '../operator/command/launch-game-server.handler';
+import { RunServerSchema } from '../operator/command/launch-game-server.handler';
 import { devnullstd } from '../util/devnullstd';
 import { DockerContainerMetrics } from '../metric/docker-container.metrics';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import * as fs from 'fs';
 
 @Injectable()
 export class DockerService implements OnApplicationBootstrap {
@@ -27,7 +28,7 @@ export class DockerService implements OnApplicationBootstrap {
   // TODO:
   public async startGameServer(
     map: Dota_Map,
-    clConfig: CommandLineConfig,
+    schema: RunServerSchema,
     enableTv: boolean,
     gameMode: Dota_GameMode,
     logfileName: string,
@@ -38,10 +39,12 @@ export class DockerService implements OnApplicationBootstrap {
     const tvPort = gamePort + 5;
 
     // Initial setup
-    clConfig.info.players.forEach((plr) => (plr['ignore'] = false));
-    const matchBase64 = Buffer.from(JSON.stringify(clConfig)).toString(
-      'base64',
-    );
+    // clConfig.info.players.forEach((plr) => (plr['ignore'] = false));
+    // const matchBase64 = Buffer.from(JSON.stringify(clConfig)).toString(
+    //   'base64',
+    // );
+    const matchBase64 = '52';
+    const configFilename = await this.createTemporaryLaunchConfig(schema);
 
     this.logger.log('Starting SRCDS container', {
       matchId: matchId,
@@ -68,7 +71,7 @@ export class DockerService implements OnApplicationBootstrap {
         Labels: {
           [DockerServerWrapper.SERVER_URL_LABEL]: `${this.config.get('srcds.host')}:${gamePort}`,
           [DockerServerWrapper.MATCH_ID_LABEL]: matchId.toString(),
-          [DockerServerWrapper.LOBBY_TYPE_LABEL]: clConfig.info.mode.toString(),
+          [DockerServerWrapper.LOBBY_TYPE_LABEL]: schema.lobbyType.toString(),
         },
         ExposedPorts: {
           [`${gamePort}/tcp`]: {},
@@ -79,6 +82,7 @@ export class DockerService implements OnApplicationBootstrap {
         Volumes: {
           '/root/dota/logs': {},
           '/root/dota/replays': {},
+          '/root/dota/cfg/match_cfg': {},
         },
 
         HostConfig: {
@@ -99,9 +103,11 @@ export class DockerService implements OnApplicationBootstrap {
             [`${tvPort}/udp`]: [{ HostPort: `${tvPort}` }],
           },
           Binds: [
+            `${this.config.get('srcds.configVolumeName')}:/root/dota/cfg/match_cfg`,
             `${this.config.get('srcds.logVolumeName')}:/root/dota/logs`,
             `${this.config.get('srcds.replayVolumeName')}:/root/dota/replays`,
             `${this.config.get('srcds.dumpVolumeName')}:/tmp/dumps`,
+            // `${configFilename}:/root/dota/cfg/match_cfg/match_info.json`,
           ],
         },
         Env: [
@@ -120,7 +126,7 @@ export class DockerService implements OnApplicationBootstrap {
       (e) => {
         this.logger.log('Container stopped', {
           matchId: matchId,
-          serverUrl: clConfig.url,
+          serverUrl: schema.serverUrl,
         });
       },
     );
@@ -227,6 +233,7 @@ export class DockerService implements OnApplicationBootstrap {
   private async createVolume() {
     await this.getOrCreateVolume(this.config.get('srcds.logVolumeName'));
     await this.getOrCreateVolume(this.config.get('srcds.replayVolumeName'));
+    await this.getOrCreateVolume(this.config.get('srcds.configVolumeName'));
   }
 
   private async createDockerNetwork() {
@@ -291,5 +298,15 @@ export class DockerService implements OnApplicationBootstrap {
     }
 
     this.logger.log('Volume exists.');
+  }
+
+  private async createTemporaryLaunchConfig(schema: RunServerSchema) {
+    const data = JSON.stringify(schema);
+    const filename = path.resolve(
+      this.config.get('srcds.configVolumeName'),
+      `${schema.matchId}.json`,
+    );
+    await fs.promises.writeFile(filename, data, { flag: 'wx' });
+    return filename;
   }
 }

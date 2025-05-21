@@ -15,6 +15,24 @@ export interface CommandLineConfig {
   info: GSMatchInfo;
 }
 
+export interface RunServerSchema {
+  matchId: number;
+  lobbyType: number;
+  gameMode: number;
+  roomId: string;
+  serverUrl: string;
+  players: Player[];
+}
+
+export interface Player {
+  steamId: string;
+  name: string;
+  subscriber: boolean;
+  muted: boolean;
+  ignore: boolean;
+  partyId: string;
+}
+
 @CommandHandler(LaunchGameServerCommand)
 export class LaunchGameServerCommandHandler
   implements
@@ -52,22 +70,27 @@ export class LaunchGameServerCommandHandler
     const serverUrl = `${this.config.get('srcds.host')}:${freePort}`;
     const tickrate = 30;
 
-    const clConfig: CommandLineConfig = {
+    const schema: RunServerSchema = {
       matchId: matchId,
-      info: info,
-      url: serverUrl,
+      lobbyType: info.mode,
+      gameMode: info.gameMode,
+      roomId: info.roomId,
+      serverUrl: serverUrl,
+      players: info.players.map((player) => ({
+        steamId: player.playerId.value,
+        subscriber: true, //fixme
+        name: player.name,
+        muted: true,
+        ignore: false,
+        partyId: player.partyId,
+      })),
     };
 
-    clConfig.info.players.forEach((plr, idx) => {
-      // @ts-ignore
-      plr['partyId'] = `Party_${idx}`;
-    });
-
-    this.logger.log('MatchInfo for base64', clConfig);
+    this.logger.log('MatchInfo for base64', schema);
 
     await this.docker.startGameServer(
       map,
-      clConfig,
+      schema,
       true,
       gameMode,
       `match_${matchId}.log`,
