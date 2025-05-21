@@ -13,6 +13,8 @@ export interface RunServerSchema {
   gameMode: number;
   roomId: string;
   serverUrl: string;
+  fillBots: boolean;
+  enableCheats: boolean;
   players: Player[];
 }
 
@@ -68,6 +70,8 @@ export class LaunchGameServerCommandHandler
       gameMode: command.gameMode,
       roomId: command.roomId,
       serverUrl: serverUrl,
+      fillBots: command.fillBots,
+      enableCheats: command.enableCheats,
       players: command.players.map((player) => ({
         steamId: player.steamId,
         subscriber: player.subscriber,
