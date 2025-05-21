@@ -96,6 +96,7 @@ services:
       - //Users/itachi/.orbstack/run/docker.sock:/var/run/docker.sock
       - srcds_artifacts_logs:/volume/logs
       - srcds_artifacts_replays:/volume/replays
+      - srcds_artifacts_configs:/volume/configs
     ports:
       - '0.0.0.0:7777:7777'
   fluentbit:

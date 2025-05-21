@@ -107,7 +107,8 @@ export class DockerService implements OnApplicationBootstrap {
             `${this.config.get('srcds.logVolumeName')}:/root/dota/logs`,
             `${this.config.get('srcds.replayVolumeName')}:/root/dota/replays`,
             `${this.config.get('srcds.dumpVolumeName')}:/tmp/dumps`,
-            // `${configFilename}:/root/dota/cfg/match_cfg/match_info.json`,
+            `${configFilename}:/root/dota/cfg/match_cfg/match_info.json`,
+            `${configFilename}:/root/dota/cfg/match_info.json`,
           ],
         },
         Env: [
@@ -170,6 +171,10 @@ export class DockerService implements OnApplicationBootstrap {
 
   public getLogsVolumePath(): string {
     return path.resolve(this.config.get('srcds.volume'), 'logs');
+  }
+
+  public getConfigsVolumePath(): string {
+    return path.resolve(this.config.get('srcds.volume'), 'configs');
   }
 
   async onApplicationBootstrap() {
@@ -303,7 +308,7 @@ export class DockerService implements OnApplicationBootstrap {
   private async createTemporaryLaunchConfig(schema: RunServerSchema) {
     const data = JSON.stringify(schema);
     const filename = path.resolve(
-      this.config.get('srcds.configVolumeName'),
+      this.getConfigsVolumePath(),
       `${schema.matchId}.json`,
     );
     await fs.promises.writeFile(filename, data, { flag: 'wx' });
