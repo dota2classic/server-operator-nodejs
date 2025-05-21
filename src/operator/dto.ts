@@ -103,4 +103,5 @@ export interface SRCDSPlayer {
   networth: number;
   roshan_kills: number;
   items: string[];
+  party_id: string;
 }

@@ -182,7 +182,7 @@ export class AppController {
       results: d,
       match_id: d.matchId,
     });
-    const g = this.mapper.mapResults(d);
+    const gameResults = this.mapper.mapResults(d);
 
     // Make sure that log file is fully saved.
     await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -193,8 +193,11 @@ export class AppController {
 
     try {
       await fillAdditionalDataFromLog(
-        g,
-        path.join(this.docker.getLogsVolumePath(), `match_${g.matchId}.log`),
+        gameResults,
+        path.join(
+          this.docker.getLogsVolumePath(),
+          `match_${gameResults.matchId}.log`,
+        ),
       );
     } catch (e) {
       this.logger.error('Failed to fill data from log file', {
@@ -205,7 +208,7 @@ export class AppController {
       e.printStackTrace();
     }
 
-    this.matchStatusService.matchResults(g);
+    this.matchStatusService.matchResults(gameResults);
 
     return 200;
   }

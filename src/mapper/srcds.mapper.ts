@@ -7,6 +7,8 @@ import { DotaConnectionState } from '../gateway/shared-types/dota-player-connect
 @Injectable()
 export class SrcdsMapper {
   public mapResults = (d: MatchFinishedOnSRCDS) => {
+    const parties = Array.from(new Set(d.players.map((t) => t.party_id)));
+
     return new GameResultsEvent(
       d.matchId,
       d.winner,
@@ -19,6 +21,7 @@ export class SrcdsMapper {
         console.log(p.items);
         return {
           steam_id: p.steam_id.toString(),
+          partyIndex: parties.indexOf(p.party_id),
           team: p.team,
           kills: p.kills,
           deaths: p.deaths,
