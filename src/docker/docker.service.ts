@@ -20,12 +20,26 @@ import * as fs from 'fs';
 export class DockerService implements OnApplicationBootstrap {
   private logger = new Logger(DockerService.name);
 
+  public serverStartMap = new Map<number, Date>();
+
   constructor(
     @Inject('Docker') private readonly docker: Docker,
     private readonly config: ConfigService,
   ) {}
 
-  // TODO:
+  public isFreshServer(matchId: number) {
+    const entry = this.serverStartMap.get(matchId);
+    if (!entry) return false;
+
+    // Minute is enough
+    if (Date.now() - entry.getTime() > 1000 * 60) {
+      this.serverStartMap.delete(matchId);
+      return false;
+    }
+
+    return true;
+  }
+
   public async startGameServer(
     map: Dota_Map,
     schema: RunServerSchema,
@@ -55,6 +69,7 @@ export class DockerService implements OnApplicationBootstrap {
     const network = this.config.get('srcds.network');
     const runOnHostNetwork = !network;
     this.logger.log(`Running in ${runOnHostNetwork ? 'host' : 'network'} mode`);
+    this.serverStartMap.set(matchId, new Date());
     this.docker.run(
       this.config.get('srcds.serverImage'),
       [],

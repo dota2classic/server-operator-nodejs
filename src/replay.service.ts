@@ -72,13 +72,12 @@ export class ReplayService {
   @Cron(CronExpression.EVERY_MINUTE)
   private async checkUploadableReplays() {
     await this.scanUploadableEntities('replays', 'replays', 10);
-  }
-
-  @Cron(CronExpression.EVERY_10_SECONDS)
-  private async checkUploadableLogs() {
     await this.scanUploadableEntities('configs', 'logs', 10);
     await this.scanUploadableEntities('logs', 'logs', 50);
   }
+
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  private async checkUploadableLogs() {}
 
   private async scanUploadableEntities(
     entityFolder: 'logs' | 'replays' | 'configs',
@@ -112,12 +111,16 @@ export class ReplayService {
         if (lstat.isDirectory()) continue;
 
         const matchId = parseInt(entity.replace(/\D+/g, ''));
+        this.logger.log('Entity match id:' + matchId + ' / ' + unsafeMatchIds);
         if (Number.isNaN(matchId)) {
           this.logger.warn('NaN match id', { entity });
           continue;
         }
 
-        if (unsafeMatchIds.includes(matchId)) {
+        if (
+          unsafeMatchIds.includes(matchId) ||
+          this.docker.isFreshServer(matchId)
+        ) {
           this.logger.verbose(
             `Skipping entity upload for match: game in progress`,
             {
