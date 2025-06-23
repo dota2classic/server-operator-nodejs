@@ -167,14 +167,14 @@ export class AppController {
       lobby_type: d.lobby_type,
       server: d.server,
       ip: d.ip,
-      loading_time: d.loadingTime,
+      loading_time: d.duration,
       game_state: d.gameState,
       first_connect: d.firstConnect,
     });
 
     if (d.firstConnect) {
-      await this.metrics.recordConnectionTime(d.lobby_type, d.loadingTime);
-      this.logger.log(`Observed loading time ${d.loadingTime}`);
+      await this.metrics.recordConnectionTime(d.lobby_type, d.duration);
+      this.logger.log(`Observed loading time ${d.duration}`);
     }
 
     await this.ebus.publish(

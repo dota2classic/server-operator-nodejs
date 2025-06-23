@@ -76,7 +76,7 @@ export interface PlayerConnectedOnSRCDS {
   ip: string;
   gameState: Dota_GameRulesState;
   firstConnect: boolean;
-  loadingTime: number;
+  duration: number;
 }
 
 export interface MatchFinishedOnSRCDS {
