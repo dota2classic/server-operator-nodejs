@@ -71,8 +71,12 @@ export interface PlayerNotLoadedOnSRCDS {
 export interface PlayerConnectedOnSRCDS {
   match_id: number;
   steam_id: number;
+  lobby_type: MatchmakingMode;
   server: string;
   ip: string;
+  gameState: Dota_GameRulesState;
+  firstConnect: boolean;
+  loadingTime: number;
 }
 
 export interface MatchFinishedOnSRCDS {

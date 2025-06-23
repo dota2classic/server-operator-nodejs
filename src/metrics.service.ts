@@ -6,8 +6,8 @@ import {
 } from './util/parseStatsResponse';
 import { parseStatusResponse } from './util/parseStatusResponse';
 import * as client from 'prom-client';
-import { Gauge, PrometheusContentType, Registry } from 'prom-client';
-import { Cron } from '@nestjs/schedule';
+import { Gauge, Histogram, PrometheusContentType, Registry } from 'prom-client';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { DockerService } from './docker/docker.service';
 import { MatchmakingMode } from './gateway/shared-types/matchmaking-mode';
@@ -25,6 +25,9 @@ export interface CleanPlayerMetric {
 @Injectable()
 export class MetricsService {
   private logger = new Logger('SRCDS');
+
+  // Game metrics
+  private loadingTime: Histogram<string>;
 
   private cpuGauge: Gauge<string>;
   private fpsGauge: Gauge<string>;
@@ -46,6 +49,12 @@ export class MetricsService {
     private readonly pushgateway: client.Pushgateway<PrometheusContentType>,
     private readonly docker: DockerService,
   ) {
+    this.loadingTime = new Histogram<string>({
+      name: 'd2c_game_server_loading_time',
+      help: 'Loading time into game',
+      labelNames: ['host', 'lobby_type'],
+    });
+
     this.cpuGauge = new Gauge<string>({
       name: 'srcds_metrics_cpu',
       help: 'app_concurrent_metrics_help',
@@ -118,12 +127,25 @@ export class MetricsService {
         host: this.config.get('host'),
       },
     });
+  }
 
+  // Every day at 4 am
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  private async resetMetrics() {
     // @ts-ignore
     const registry: Registry = this.pushgateway['registry'];
     if (!registry) return;
 
     registry.resetMetrics();
+  }
+
+  public async recordConnectionTime(
+    mode: MatchmakingMode,
+    loadingTime: number,
+  ) {
+    this.loadingTime
+      .labels(this.config.get('srcds.host'), mode.toString())
+      .observe(loadingTime);
   }
 
   private async collectSrcdsMetrics() {

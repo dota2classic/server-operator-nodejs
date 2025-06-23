@@ -3,6 +3,7 @@
 /node_modules
 /build
 runscreen.sh
+ansible
 # Logs
 logs
 install.sh

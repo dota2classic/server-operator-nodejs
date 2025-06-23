@@ -29,6 +29,7 @@ import { ReqLoggingInterceptor } from './middleware/req-logging.interceptor';
 import * as path from 'path';
 import { DockerService } from './docker/docker.service';
 import { SrcdsMapper } from './mapper/srcds.mapper';
+import { MetricsService } from './metrics.service';
 
 @Controller()
 export class AppController {
@@ -40,6 +41,7 @@ export class AppController {
     private readonly matchStatusService: MatchStatusService,
     private readonly docker: DockerService,
     private readonly mapper: SrcdsMapper,
+    private readonly metrics: MetricsService,
   ) {}
 
   @Post('/live_match')
@@ -162,9 +164,19 @@ export class AppController {
     this.logger.log('Player connected', {
       match_id: d.match_id,
       steam_id: d.steam_id,
+      lobby_type: d.lobby_type,
       server: d.server,
       ip: d.ip,
+      loading_time: d.loadingTime,
+      game_state: d.gameState,
+      first_connect: d.firstConnect,
     });
+
+    if (d.firstConnect) {
+      await this.metrics.recordConnectionTime(d.lobby_type, d.loadingTime);
+      this.logger.log(`Observed loading time ${d.loadingTime}`);
+    }
+
     await this.ebus.publish(
       new PlayerConnectedEvent(
         new PlayerId(d.steam_id.toString()),
