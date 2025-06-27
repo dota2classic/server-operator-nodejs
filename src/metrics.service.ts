@@ -153,14 +153,15 @@ export class MetricsService {
     // servers.forEach(server => this.collectPlayerMetrics(this.config.get('')))
     await Promise.all(
       servers.map(async (server) => {
+        const port = Number(server.serverUrl.split(':')[1]);
         const metric = await this.collectServerMetrics(
           `match${server.matchId}`,
-          27015, // Inner port
+          port, // Inner port
         );
 
         const playerMetric = await this.collectPlayerMetrics(
           `match${server.matchId}`,
-          27015, // Inner port
+          port, // Inner port
         );
         const containerMetrics = await this.docker.containerMetrics(server);
 
