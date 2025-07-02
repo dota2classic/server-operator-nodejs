@@ -17,10 +17,16 @@ export class RunRconHandler implements ICommandHandler<RunRconCommand> {
   ) {}
 
   async execute(command: RunRconCommand): Promise<RunRconResponse> {
+    this.logger.log(
+      `Received RCON command for server ${command.serverUrl}: "${command.command}"`,
+    );
     const host = command.serverUrl.split(':')[0];
     const port = parseInt(command.serverUrl.split(':')[1]);
 
     const servers = await this.docker.getRunningGameServers();
+    this.logger.log(
+      `Running servers: ${servers.map((t) => t.serverUrl).join(', ')}`,
+    );
 
     const myServer = servers.find((t) => t.serverUrl === command.serverUrl);
     if (!myServer) return;
