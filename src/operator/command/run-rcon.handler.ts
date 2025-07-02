@@ -20,7 +20,10 @@ export class RunRconHandler implements ICommandHandler<RunRconCommand> {
     const host = command.serverUrl.split(':')[0];
     const port = parseInt(command.serverUrl.split(':')[1]);
 
-    if (this.config.get('srcds.host') !== host) return;
+    const servers = await this.docker.getRunningGameServers();
+
+    const myServer = servers.find((t) => t.serverUrl === command.serverUrl);
+    if (!myServer) return;
 
     this.logger.log('Running RCON command', {
       command: command.command,

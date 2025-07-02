@@ -13,6 +13,8 @@ import { SrcdsServerStartedEvent } from './gateway/events/srcds-server-started.e
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { KillServerRequestedEvent } from './gateway/events/gs/kill-server-requested.event';
 import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
+import { RunRconResponse } from './gateway/commands/RunRcon/run-rcon.response';
+import { RunRconCommand } from './gateway/commands/RunRcon/run-rcon.command';
 
 @Controller()
 export class EventsController {
@@ -72,8 +74,8 @@ export class EventsController {
     );
   }
 
-  // @MessagePattern(RunRconCommand.name)
-  // async RunRconCommand(query: RunRconCommand): Promise<RunRconResponse> {
-  //   return this.cbus.execute(construct(RunRconCommand, query));
-  // }
+  @MessagePattern(RunRconCommand.name)
+  async RunRconCommand(query: RunRconCommand): Promise<RunRconResponse> {
+    return this.cbus.execute(construct(RunRconCommand, query));
+  }
 }
