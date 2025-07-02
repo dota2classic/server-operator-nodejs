@@ -76,6 +76,7 @@ export class EventsController {
 
   @MessagePattern(RunRconCommand.name)
   async RunRconCommand(query: RunRconCommand): Promise<RunRconResponse> {
+    console.log('God please', query);
     return this.cbus.execute(construct(RunRconCommand, query));
   }
 }
