@@ -6,6 +6,8 @@ import { LaunchGameServerNewResponse } from './launch-game-server-new.response';
 import { getFreePort } from '../../util/getFreePort';
 import { DockerService } from '../../docker/docker.service';
 import { DotaTeam } from '../../gateway/shared-types/dota-team';
+import { MatchmakingMode } from '../../gateway/shared-types/matchmaking-mode';
+import { Dota_GameMode } from '../../gateway/shared-types/dota-game-mode';
 
 export interface RunServerSchema {
   matchId: number;
@@ -15,6 +17,7 @@ export interface RunServerSchema {
   serverUrl: string;
   fillBots: boolean;
   enableCheats: boolean;
+  strictPause: boolean;
   players: Player[];
 }
 
@@ -72,6 +75,9 @@ export class LaunchGameServerCommandHandler
       serverUrl: serverUrl,
       fillBots: command.fillBots,
       enableCheats: command.enableCheats,
+      strictPause:
+        command.lobbyType != MatchmakingMode.LOBBY &&
+        command.gameMode !== Dota_GameMode.CAPTAINS_MODE,
       players: command.players.map((player) => ({
         steamId: player.steamId,
         subscriber: player.subscriber,
