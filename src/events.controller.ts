@@ -2,6 +2,7 @@ import { Controller, Inject, Logger } from '@nestjs/common';
 import {
   ClientProxy,
   Ctx,
+  EventPattern,
   MessagePattern,
   Payload,
   RmqContext,
@@ -74,9 +75,8 @@ export class EventsController {
     );
   }
 
-  @MessagePattern(RunRconCommand.name)
+  @EventPattern(RunRconCommand.name)
   async RunRconCommand(query: RunRconCommand): Promise<RunRconResponse> {
-    console.log('God please', query);
-    return this.cbus.execute(construct(RunRconCommand, query));
+    await this.cbus.execute(construct(RunRconCommand, query));
   }
 }
