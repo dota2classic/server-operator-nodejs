@@ -215,7 +215,7 @@ export class DockerService implements OnApplicationBootstrap {
     for (let server of servers) {
       const container = await this.docker.getContainer(server.container.Id);
       const logs = await container
-        .logs({ tail: 100, stdout: true, stderr: true })
+        .logs({ tail: 500, stdout: true, stderr: true })
         .then((it) => it.toString());
 
       if (
