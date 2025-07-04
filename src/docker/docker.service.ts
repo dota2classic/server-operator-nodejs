@@ -218,6 +218,15 @@ export class DockerService implements OnApplicationBootstrap {
         .logs({ tail: 100, stdout: true, stderr: true })
         .then((it) => it.toString());
 
+      if (
+        logs.includes('WatchDog') ||
+        logs.includes('Server took too long to process')
+      ) {
+        this.logger.warn(
+          `Potentially crashing server detected! ${server.matchId} ${server.serverUrl}`,
+        );
+      }
+
       if (logs.includes('PreMinidumpCallback: updating dump comment')) {
         this.logger.error(
           `DEAD CONTAINER DETECTED: ${server.matchId} host ${server.serverUrl}`,
