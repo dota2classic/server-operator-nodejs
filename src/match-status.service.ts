@@ -1,27 +1,27 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { Injectable } from '@nestjs/common';
 import { GameResultsEvent } from './gateway/events/gs/game-results.event';
 import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.event';
 import { MatchFailedEvent } from './gateway/events/match-failed.event';
 import { PlayerNotLoadedEvent } from './gateway/events/bans/player-not-loaded.event';
+import { EventBus } from '@nestjs/cqrs';
 
 @Injectable()
 export class MatchStatusService {
-  constructor(@Inject('RMQ') private readonly rmq: ClientProxy) {}
+  constructor(private readonly ebus: EventBus) {}
 
   public matchResults(gr: GameResultsEvent) {
-    this.rmq.emit(GameResultsEvent.name, gr);
+    this.ebus.publish(gr);
   }
 
   public matchFailed(e: MatchFailedEvent) {
-    this.rmq.emit(MatchFailedEvent.name, e);
+    this.ebus.publish(e);
   }
 
   public playerAbandon(pa: PlayerAbandonedEvent) {
-    this.rmq.emit(PlayerAbandonedEvent.name, pa);
+    this.ebus.publish(pa);
   }
 
   public playerNotLoaded(pa: PlayerNotLoadedEvent) {
-    this.rmq.emit(PlayerNotLoadedEvent.name, pa);
+    this.ebus.publish(pa);
   }
 }

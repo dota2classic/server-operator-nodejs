@@ -12,7 +12,6 @@ import configuration from './configuration';
 import { ReplayService } from './replay.service';
 import { RconService } from './rcon.service';
 import { RunRconHandler } from './operator/command/run-rcon.handler';
-import { RmqOptions } from '@nestjs/microservices/interfaces/microservice-configuration.interface';
 import { MatchStatusService } from './match-status.service';
 import { EventsController } from './events.controller';
 import { MetricsService } from './metrics.service';
@@ -25,6 +24,7 @@ import { DockerService } from './docker/docker.service';
 import { WinstonWrapper } from '@dota2classic/nest_logger';
 import { GameServerNotStartedHandler } from './operator/event-handler/server-actualization-requested.handler';
 import { SrcdsMapper } from './mapper/srcds.mapper';
+import { RabbitMQConfig, RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 
 const EventHandlers = [
   LaunchGameServerCommandHandler,
@@ -68,34 +68,21 @@ const EventHandlers = [
         imports: [],
       },
     ]),
-    ClientsModule.registerAsync([
-      {
-        name: 'RMQ',
-        useFactory(config: ConfigService): RmqOptions {
-          return {
-            transport: Transport.RMQ,
-            options: {
-              urls: [
-                {
-                  hostname: config.get<string>('rabbitmq.host'),
-                  port: config.get<number>('rabbitmq.port'),
-                  protocol: 'amqp',
-                  username: config.get<string>('rabbitmq.user'),
-                  password: config.get<string>('rabbitmq.password'),
-                },
-              ],
-              queue: config.get<string>('rabbitmq.srcds_events'),
-              queueOptions: {
-                durable: true,
-              },
-              prefetchCount: 5,
+    RabbitMQModule.forRootAsync({
+      useFactory(config: ConfigService): RabbitMQConfig {
+        return {
+          exchanges: [
+            {
+              name: 'srcds_exchange',
+              type: 'topic',
             },
-          };
-        },
-        inject: [ConfigService],
-        imports: [],
+          ],
+          uri: `amqp://${config.get('rabbitmq.user')}:${config.get('rabbitmq.password')}@${config.get('rabbitmq.host')}:${config.get('rabbitmq.port')}`,
+        };
       },
-    ]),
+      imports: [],
+      inject: [ConfigService],
+    }),
     S3Module.forRootAsync({
       useFactory(config: ConfigService) {
         return {

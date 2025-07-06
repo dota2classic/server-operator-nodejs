@@ -1,12 +1,5 @@
-import { Controller, Inject, Logger } from '@nestjs/common';
-import {
-  ClientProxy,
-  Ctx,
-  EventPattern,
-  MessagePattern,
-  Payload,
-  RmqContext,
-} from '@nestjs/microservices';
+import { Controller, Logger } from '@nestjs/common';
+import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { LaunchGameServerCommand } from './gateway/commands/LaunchGameServer/launch-game-server.command';
 import { LaunchGameServerNewResponse } from './operator/command/launch-game-server-new.response';
 import { construct } from './gateway/util/construct';
@@ -15,6 +8,7 @@ import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { KillServerRequestedEvent } from './gateway/events/gs/kill-server-requested.event';
 import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
 import { RunRconCommand } from './gateway/commands/RunRcon/run-rcon.command';
+import { Nack, RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 
 @Controller()
 export class EventsController {
@@ -23,17 +17,14 @@ export class EventsController {
   constructor(
     private readonly cbus: CommandBus,
     private readonly ebus: EventBus,
-    @Inject('RMQ') private readonly rmq: ClientProxy,
   ) {}
 
-  @MessagePattern(LaunchGameServerCommand.name)
-  async runSrcdsForGame(
-    @Payload() data: LaunchGameServerCommand,
-    @Ctx() context: RmqContext,
-  ) {
-    const channel = context.getChannelRef();
-    const originalMsg = context.getMessage();
-
+  @RabbitSubscribe({
+    exchange: 'gameserver_exchange',
+    routingKey: LaunchGameServerCommand.name,
+    queue: 'operator-queue',
+  })
+  private async createTicketMessageNotification(data: LaunchGameServerCommand) {
     const result = await this.cbus.execute<
       LaunchGameServerCommand,
       LaunchGameServerNewResponse
@@ -42,18 +33,12 @@ export class EventsController {
       this.logger.log('Nacked run command for match', {
         match_id: data.matchId,
       });
-      channel.nack(originalMsg);
-      return;
+      return new Nack(true);
     }
-
-    channel.ack(originalMsg);
     this.logger.log('Acked run command for match', { match_id: data.matchId });
 
     await new Promise((resolve) => setTimeout(resolve, 5000));
-    this.rmq.emit(
-      SrcdsServerStartedEvent.name,
-      new SrcdsServerStartedEvent(result.server, data),
-    );
+    this.ebus.publish(new SrcdsServerStartedEvent(result.server, data));
     this.logger.log('GameServer started', {
       match_id: data.matchId,
       server_url: result.server,
