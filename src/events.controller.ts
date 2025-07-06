@@ -45,11 +45,13 @@ export class EventsController {
     });
   }
 
+  // Redis
   @MessagePattern(KillServerRequestedEvent.name)
   async KillServerRequestedEvent(query: KillServerRequestedEvent) {
     return this.ebus.publish(construct(KillServerRequestedEvent, query));
   }
 
+  // Redis
   @MessagePattern(ServerActualizationRequestedEvent.name)
   async ServerActualizationRequestedEvent(
     query: ServerActualizationRequestedEvent,
@@ -59,6 +61,7 @@ export class EventsController {
     );
   }
 
+  // Redis
   @EventPattern(RunRconCommand.name)
   async RunRconCommand(query: RunRconCommand) {
     await this.cbus.execute(construct(RunRconCommand, query));
