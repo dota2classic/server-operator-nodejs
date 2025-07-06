@@ -58,7 +58,7 @@ export class AppService
       )
       .subscribe((t) =>
         this.amqpConnection
-          .publish('srcds_exchange', t.constructor.name, t)
+          .publish('app.events', t.constructor.name, t)
           .then(() =>
             this.logger.log(`Published RMQ message ${t.constructor.name}`),
           ),

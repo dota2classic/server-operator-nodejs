@@ -73,7 +73,7 @@ const EventHandlers = [
         return {
           exchanges: [
             {
-              name: 'srcds_exchange',
+              name: 'app.events',
               type: 'topic',
             },
           ],

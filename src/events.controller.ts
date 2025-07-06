@@ -20,7 +20,7 @@ export class EventsController {
   ) {}
 
   @RabbitSubscribe({
-    exchange: 'gameserver_exchange',
+    exchange: 'app.events',
     routingKey: LaunchGameServerCommand.name,
     queue: 'operator-queue',
   })
