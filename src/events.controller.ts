@@ -22,7 +22,7 @@ export class EventsController {
   @RabbitSubscribe({
     exchange: 'app.events',
     routingKey: LaunchGameServerCommand.name,
-    queue: 'operator-queue',
+    queue: `operator.${LaunchGameServerCommand.name}`,
   })
   private async createTicketMessageNotification(data: LaunchGameServerCommand) {
     const result = await this.cbus.execute<
