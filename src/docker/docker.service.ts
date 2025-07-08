@@ -137,6 +137,7 @@ export class DockerService implements OnApplicationBootstrap {
           `TV_ENABLE=${enableTv ? 1 : 0}`,
           `RCON_PASSWORD=${this.config.get('srcds.rconPassword')}`,
           `MASTER_SERVER=${runOnHostNetwork ? 'http://localhost:7777' : `http://${masterHost}:7777`}`,
+          `ADDITIONAL_CFG=${tickrate === 128 ? 'tickrate128.cfg' : 'server.cfg'}`,
         ],
       },
       (e, a) => {
