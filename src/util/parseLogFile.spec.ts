@@ -40,7 +40,6 @@ describe('Log parsing', () => {
     // When
     const parsed = parseLog(f);
 
-    console.log(parsed);
     // Then
     expect(parsed.tower_damage).toHaveLength(10);
     expect(parsed.hero_damage).toHaveLength(10);
