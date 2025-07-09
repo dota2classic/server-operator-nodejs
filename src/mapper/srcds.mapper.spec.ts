@@ -17,6 +17,7 @@ describe('SrcdsMapper', () => {
         {
           hero: 'npc_dota_hero_pudge',
           steam_id: 91401788,
+          party_id: '91401788',
           team: 2,
           level: 11,
           kills: 0,
@@ -42,6 +43,7 @@ describe('SrcdsMapper', () => {
         {
           hero: 'npc_dota_hero_techies',
           steam_id: 115580930,
+          party_id: '115580930',
           team: 2,
           level: 9,
           kills: 8,
@@ -67,6 +69,7 @@ describe('SrcdsMapper', () => {
         {
           hero: 'npc_dota_hero_bounty_hunter',
           steam_id: 253323011,
+          party_id: '253323011',
           team: 2,
           level: 15,
           kills: 15,
@@ -92,6 +95,7 @@ describe('SrcdsMapper', () => {
         {
           hero: 'npc_dota_hero_venomancer',
           steam_id: 1427685866,
+          party_id: '1427685866',
           team: 2,
           level: 11,
           kills: 1,
@@ -117,6 +121,7 @@ describe('SrcdsMapper', () => {
         {
           hero: 'npc_dota_hero_meepo',
           steam_id: 1770781994,
+          party_id: '1770781994',
           team: 2,
           level: 23,
           kills: 12,
@@ -142,6 +147,7 @@ describe('SrcdsMapper', () => {
         {
           hero: 'npc_dota_hero_antimage',
           steam_id: 208516508,
+          party_id: '208516508',
           team: 3,
           level: 13,
           kills: 1,
@@ -167,6 +173,7 @@ describe('SrcdsMapper', () => {
         {
           hero: 'npc_dota_hero_invoker',
           steam_id: 207521528,
+          party_id: '207521528',
           team: 3,
           level: 9,
           kills: 1,
@@ -192,6 +199,7 @@ describe('SrcdsMapper', () => {
         {
           hero: 'npc_dota_hero_pugna',
           steam_id: 367513425,
+          party_id: '367513425',
           team: 3,
           level: 9,
           kills: 2,
@@ -217,6 +225,7 @@ describe('SrcdsMapper', () => {
         {
           hero: 'npc_dota_hero_nyx_assassin',
           steam_id: 172030769,
+          party_id: '172030769',
           team: 3,
           level: 10,
           kills: 2,
@@ -242,6 +251,7 @@ describe('SrcdsMapper', () => {
         {
           hero: 'npc_dota_hero_lion',
           steam_id: 839854692,
+          party_id: '839854692',
           team: 3,
           level: 8,
           kills: 1,

@@ -6,7 +6,7 @@ interface LogData {
   duration: number;
   date: number;
   num_players: number[];
-  steam_id: number[];
+  steam_id: string[];
   hero_id: number[];
   items: number[];
   gold: number[];
@@ -59,6 +59,7 @@ interface LogData {
   full_resends: number;
 }
 
+const numberRegex = /\d+/;
 export const parseLog = (rawLog: string): LogData => {
   const regex = new RegExp(/\d\d\/\d\d\/\d\d\d\d - \d\d:\d\d:\d\d: /g);
   const log = rawLog.replaceAll(regex, '');
@@ -76,8 +77,18 @@ export const parseLog = (rawLog: string): LogData => {
   const obj = {};
   Array.from(jsonLikeData.matchAll(fields)).forEach((match) => {
     const key = match[0].split(': ')[0];
-    let value: number | string = Number(match[2]);
-    value = Number.isNaN(value) ? match[2] : value;
+
+    const isNumber = numberRegex.test(match[2]);
+    let value: number | string | BigInt;
+
+    if (isNumber && match[2].length > 10) {
+      value = BigInt(match[2]);
+    } else if (isNumber) {
+      value = Number(match[2]);
+    } else {
+      value = match[2];
+    }
+
     const arr = obj[key] || [];
     obj[key] = [...arr, value];
   });
@@ -111,7 +122,7 @@ export async function fillAdditionalDataFromLog(
 
       let index = parsedLogFile.steam_id.findIndex((steam64) => {
         const steam32 = (
-          BigInt(steam64) - BigInt('76561197960265728')
+          BigInt(steam64.toString()) - BigInt('76561197960265728')
         ).toString();
         return steam32 === it.steam_id;
       });
