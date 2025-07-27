@@ -52,67 +52,67 @@ export class MetricsService {
     this.loadingTime = new Histogram<string>({
       name: 'd2c_game_server_loading_time',
       help: 'Loading time into game',
-      labelNames: ['host', 'lobby_type'],
+      labelNames: ['host', 'match_id', 'lobby_type'],
     });
 
     this.cpuGauge = new Gauge<string>({
       name: 'srcds_metrics_cpu',
       help: 'app_concurrent_metrics_help',
-      labelNames: ['host', 'server_url', 'lobby_type'],
+      labelNames: ['host', 'match_id', 'server_url', 'lobby_type'],
     });
 
     this.fpsGauge = new Gauge<string>({
       name: 'srcds_metrics_fps',
       help: 'app_concurrent_metrics_help',
-      labelNames: ['host', 'server_url', 'lobby_type'],
+      labelNames: ['host', 'match_id', 'server_url', 'lobby_type'],
     });
 
     this.inGauge = new Gauge<string>({
       name: 'srcds_metrics_net_in',
       help: 'app_concurrent_metrics_help',
-      labelNames: ['host', 'server_url', 'lobby_type'],
+      labelNames: ['host', 'match_id', 'server_url', 'lobby_type'],
     });
 
     this.outGauge = new Gauge<string>({
       name: 'srcds_metrics_net_out',
       help: 'app_concurrent_metrics_help',
-      labelNames: ['host', 'server_url', 'lobby_type'],
+      labelNames: ['host', 'match_id', 'server_url', 'lobby_type'],
     });
 
     this.pingGauge = new Gauge<string>({
       name: 'srcds_metrics_ping',
       help: 'app_concurrent_metrics_help',
-      labelNames: ['host', 'server_url', 'lobby_type'],
+      labelNames: ['host', 'match_id', 'server_url', 'lobby_type', 'steam_id'],
     });
 
     this.lossGauge = new Gauge<string>({
       name: 'srcds_metrics_loss',
       help: 'app_concurrent_metrics_help',
-      labelNames: ['host', 'server_url', 'lobby_type'],
+      labelNames: ['host', 'match_id', 'server_url', 'lobby_type', 'steam_id'],
     });
 
     this.playerCountGauge = new Gauge<string>({
       name: 'srcds_player_count',
       help: 'app_concurrent_metrics_help',
-      labelNames: ['host', 'server_url', 'lobby_type'],
+      labelNames: ['host', 'match_id', 'server_url', 'lobby_type'],
     });
 
     this.dockerCpuGauge = new Gauge<string>({
       name: 'srcds_docker_cpu',
       help: 'app_concurrent_metrics_help',
-      labelNames: ['host', 'server_url', 'lobby_type'],
+      labelNames: ['host', 'match_id', 'server_url', 'lobby_type'],
     });
 
     this.dockerRamUsageGauge = new Gauge<string>({
       name: 'srcds_docker_ram',
       help: 'app_concurrent_metrics_help',
-      labelNames: ['host', 'server_url', 'lobby_type'],
+      labelNames: ['host', 'match_id', 'server_url', 'lobby_type'],
     });
 
     this.dockerThrottlingCpuGauge = new Gauge<string>({
       name: 'srcds_docker_cpu_throttling',
       help: 'app_concurrent_metrics_help',
-      labelNames: ['host', 'server_url', 'lobby_type'],
+      labelNames: ['host', 'match_id', 'server_url', 'lobby_type'],
     });
   }
 
@@ -180,46 +180,104 @@ export class MetricsService {
     dockerMetrics: DockerContainerMetrics,
   ) {
     const host = this.config.get('srcds.host');
+    const matchId = server.matchId.toString();
+
     this.cpuGauge
-      .labels(host, server.serverUrl, MatchmakingMode[server.lobbyType])
+      .labels(
+        host,
+        matchId,
+        server.serverUrl,
+        MatchmakingMode[server.lobbyType],
+      )
       .set(metric.cpu);
 
     this.fpsGauge
-      .labels(host, server.serverUrl, MatchmakingMode[server.lobbyType])
+      .labels(
+        host,
+        matchId,
+        server.serverUrl,
+        MatchmakingMode[server.lobbyType],
+      )
       .set(metric.fps);
 
     this.inGauge
-      .labels(host, server.serverUrl, MatchmakingMode[server.lobbyType])
+      .labels(
+        host,
+        matchId,
+        server.serverUrl,
+        MatchmakingMode[server.lobbyType],
+      )
       .set(metric.in);
 
     this.outGauge
-      .labels(host, server.serverUrl, MatchmakingMode[server.lobbyType])
+      .labels(
+        host,
+        matchId,
+        server.serverUrl,
+        MatchmakingMode[server.lobbyType],
+      )
       .set(metric.out);
 
     this.playerCountGauge
-      .labels(host, server.serverUrl, MatchmakingMode[server.lobbyType])
+      .labels(
+        host,
+        matchId,
+        server.serverUrl,
+        MatchmakingMode[server.lobbyType],
+      )
       .set(pm.length);
 
-    this.lossGauge
-      .labels(host, server.serverUrl, MatchmakingMode[server.lobbyType])
-      .set(pm.length ? pm.reduce((a, b) => a + b.loss, 0) / pm.length : 0);
+    // Players
+    pm.map((t) =>
+      this.lossGauge
+        .labels(
+          host,
+          matchId,
+          server.serverUrl,
+          MatchmakingMode[server.lobbyType],
+          t.steam_id,
+        )
+        .set(t.loss),
+    );
 
-    this.pingGauge
-      .labels(host, server.serverUrl, MatchmakingMode[server.lobbyType])
-      .set(pm.length ? pm.reduce((a, b) => a + b.ping, 0) / pm.length : 0);
+    pm.map((t) =>
+      this.pingGauge
+        .labels(
+          host,
+          matchId,
+          server.serverUrl,
+          MatchmakingMode[server.lobbyType],
+          t.steam_id,
+        )
+        .set(t.ping),
+    );
 
     // Docker
-
     this.dockerCpuGauge
-      .labels(host, server.serverUrl, MatchmakingMode[server.lobbyType])
+      .labels(
+        host,
+        matchId,
+        server.serverUrl,
+        MatchmakingMode[server.lobbyType],
+      )
       .set(dockerMetrics.cpu_usage);
 
     this.dockerThrottlingCpuGauge
-      .labels(host, server.serverUrl, MatchmakingMode[server.lobbyType])
+      .labels(
+        host,
+        matchId,
+        server.serverUrl,
+        MatchmakingMode[server.lobbyType],
+      )
       .set(dockerMetrics.throttling);
 
     this.dockerRamUsageGauge
-      .labels(host, server.serverUrl, MatchmakingMode[server.lobbyType])
+      .labels(
+        host,
+        matchId,
+        server.serverUrl,
+        MatchmakingMode[server.lobbyType],
+      )
       .set(dockerMetrics.ram_usage);
   }
 
