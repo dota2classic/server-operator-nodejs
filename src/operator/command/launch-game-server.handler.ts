@@ -97,7 +97,10 @@ export class LaunchGameServerCommandHandler
       true,
       gameMode,
       `match_${matchId}.log`,
-      command.lobbyType == MatchmakingMode.UNRANKED ? 64 : 30,
+      command.lobbyType == MatchmakingMode.UNRANKED ||
+        command.lobbyType === MatchmakingMode.LOBBY
+        ? 64
+        : 30,
       matchId,
       freePort,
     );
