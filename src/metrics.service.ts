@@ -52,7 +52,7 @@ export class MetricsService {
     this.loadingTime = new Histogram<string>({
       name: 'd2c_game_server_loading_time',
       help: 'Loading time into game',
-      labelNames: ['host', 'match_id', 'lobby_type'],
+      labelNames: ['host', 'lobby_type'],
     });
 
     this.cpuGauge = new Gauge<string>({
