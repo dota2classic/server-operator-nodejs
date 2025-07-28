@@ -15,6 +15,8 @@ import { devnullstd } from '../util/devnullstd';
 import { DockerContainerMetrics } from '../metric/docker-container.metrics';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import * as fs from 'fs';
+import { EventBus } from '@nestjs/cqrs';
+import { ServerStatusEvent } from '../gateway/events/gs/server-status.event';
 
 @Injectable()
 export class DockerService implements OnApplicationBootstrap {
@@ -25,6 +27,7 @@ export class DockerService implements OnApplicationBootstrap {
   constructor(
     @Inject('Docker') private readonly docker: Docker,
     private readonly config: ConfigService,
+    private readonly ebus: EventBus,
   ) {}
 
   public isFreshServer(matchId: number) {
@@ -145,6 +148,7 @@ export class DockerService implements OnApplicationBootstrap {
           matchId: matchId,
           serverUrl: schema.serverUrl,
         });
+        this.ebus.publish(new ServerStatusEvent(schema.serverUrl, false));
       },
     );
     this.logger.log('Started game container');
