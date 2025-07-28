@@ -169,7 +169,7 @@ export class DockerService implements OnApplicationBootstrap {
       ram_usage: stats.memory_stats.usage / stats.memory_stats.limit,
       throttling:
         stats.cpu_stats.throttling_data.throttled_periods /
-        stats.cpu_stats.throttling_data.periods,
+        Math.max(1, stats.cpu_stats.throttling_data.periods),
     };
 
     return metr;
