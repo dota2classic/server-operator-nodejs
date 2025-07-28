@@ -13,21 +13,32 @@ export interface SrcdsPlayerMetric {
 
 export const parseStatusRow = (row: string): SrcdsPlayerMetric | undefined => {
   const sep = /(?:[^\s"]+|"[^"]*")+/g;
-  const spaced = row.match(sep);
+  let spaced = row.match(sep);
 
   // a bot
   if (spaced.length < 7) return undefined;
 
+  const userId = Number(spaced[2])
+
+  const usernameStart = row.indexOf('"')
+  const usernameEnd = row.lastIndexOf('"')
+
+  const username = row.slice(usernameStart + 1, usernameEnd).trim();
+
+  const afterUsername = row.substring(usernameEnd);
+  spaced = afterUsername.match(sep);
+
+
   return {
-    userid: Number(spaced[2]),
-    name: spaced[3].replaceAll('"', ''),
-    steam_id: spaced[4].substring(5, spaced[4].length - 1),
-    connected: spaced[5],
-    ping: Number(spaced[6]),
-    loss: Number(spaced[7]),
-    state: spaced[8],
-    rate: Number(spaced[9]),
-    adr: spaced[10],
+    userid: userId,
+    name: username,
+    steam_id: spaced[0].substring(5, spaced[0].length - 1),
+    connected: spaced[1],
+    ping: Number(spaced[2]),
+    loss: Number(spaced[3]),
+    state: spaced[4],
+    rate: Number(spaced[5]),
+    adr: spaced[6],
   };
 };
 export const parseStatusResponse = (raw: string): SrcdsPlayerMetric[] => {

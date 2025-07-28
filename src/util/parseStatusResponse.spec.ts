@@ -1,4 +1,8 @@
-import { parseStatusResponse, parseStatusRow } from './parseStatusResponse';
+import {
+  parseStatusResponse,
+  parseStatusRow,
+  SrcdsPlayerMetric,
+} from './parseStatusResponse';
 
 describe('parseStatusResponse', () => {
   it('should parse status row for human', () => {
@@ -49,6 +53,145 @@ describe('parseStatusResponse', () => {
         state: `active`,
         rate: 80000,
         adr: `123.219.46.14:12345`,
+      },
+    ]);
+  });
+
+  it('should sdfd', () => {
+    const raw = `hostname: Dota 2
+version : 41/41 0 secure  
+steamid : [A:1:2405480470:46530] (90271839781173270)
+udp/ip  :  172.18.0.3:25636 os(Linux) type(dedicated)
+sourcetv:  port 25641, delay 30.0s
+players : 10 humans, 1 bots (15 max) (not hibernating)
+edicts : 1090 used of 2048 max
+gamestate: DOTA_GAMERULES_STATE_GAME_IN_PROGRESS Times: Transition=291.61 Current=1442.17
+# userid name uniqueid connected ping loss state rate adr
+# 2 "SourceTV" BOT active
+#  3 2 "Scooby-Jew" [U:1:210614214] 23:59 97 0 active 80000 93.100.45.147:55411
+#  4 3 "P;QP=QP8P:" [U:1:1264751116] 23:57 100 0 active 80000 77.222.99.86:63925
+#  5 4 "PPPP P+PP/" [U:1:188552021] 23:57 133 0 active 80000 188.0.7.14:59958
+#  6 5 "ycidb" [U:1:1560764202] 23:57 100 0 active 80000 31.41.15.93:56690
+#  7 6 "324" [U:1:372067319] 23:55 166 0 active 80000 185.103.253.26:33354
+#  8 7 "Aniirus" [U:1:1078061807] 23:55 137 66 active 80000 176.59.8.184:61167
+#  9 8 "P PPPPP"PP  PPPP"P" [U:1:254190013] 23:53 133 0 active 80000 212.15.61.67:62952
+# 13 9 "baltasar" [U:1:1881570599] 22:25 100 23 active 80000 95.105.125.163:3231
+# 11 10 "bPP8P;P>Q PP>P;P8P4P0b" [U:1:229840067] 23:36 200 0 active 80000 95.159.190.250:50442
+# 12 11 "seul" [U:1:148928588] 23:18 100 0 active 80000 188.186.228.16:18638
+#end
+L 07/28/2025 - 09:34:57: rcon from "89.223.53.11:51481": command "status"
+`;
+
+    expect(parseStatusResponse(raw)).toEqual([
+      {
+        userid: 2,
+        name: 'Scooby-Jew',
+        steam_id: `210614214`,
+        connected: '23:59',
+        ping: 97,
+        loss: 0,
+        state: `active`,
+        rate: 80000,
+        adr: `93.100.45.147:55411`,
+      },
+      {
+        userid: 3,
+        name: 'P;QP=QP8P:',
+        steam_id: `1264751116`,
+        connected: '23:57',
+        ping: 100,
+        loss: 0,
+        state: `active`,
+        rate: 80000,
+        adr: `77.222.99.86:63925`,
+      },
+      {
+        userid: 4,
+        name: 'PPPP P+PP/',
+        steam_id: `188552021`,
+        connected: '23:57',
+        ping: 133,
+        loss: 0,
+        state: `active`,
+        rate: 80000,
+        adr: `188.0.7.14:59958`,
+      },
+      {
+        userid: 5,
+        name: 'ycidb',
+        steam_id: `1560764202`,
+        connected: '23:57',
+        ping: 100,
+        loss: 0,
+        state: `active`,
+        rate: 80000,
+        adr: `31.41.15.93:56690`,
+      },
+      {
+        userid: 6,
+        name: '324',
+        steam_id: `372067319`,
+        connected: '23:55',
+        ping: 166,
+        loss: 0,
+        state: `active`,
+        rate: 80000,
+        adr: `185.103.253.26:33354`,
+      },
+      {
+        userid: 7,
+        name: 'Aniirus',
+        steam_id: `1078061807`,
+        connected: '23:55',
+        ping: 137,
+        loss: 66,
+        state: `active`,
+        rate: 80000,
+        adr: `176.59.8.184:61167`,
+      },
+      {
+        userid: 8,
+        name: 'P PPPPP"PP  PPPP"P',
+        steam_id: `254190013`,
+        connected: '23:53',
+        ping: 133,
+        loss: 0,
+        state: `active`,
+        rate: 80000,
+        adr: `212.15.61.67:62952`,
+      },
+      {
+        userid: 9,
+        name: 'baltasar',
+        steam_id: `1881570599`,
+        connected: '22:25',
+        ping: 100,
+        loss: 23,
+        state: `active`,
+        rate: 80000,
+        adr: `95.105.125.163:3231`,
+      },
+      {
+        userid: 10,
+        name: 'bPP8P;P>Q PP>P;P8P4P0b',
+        steam_id: `229840067`,
+        connected: '23:36',
+        ping: 200,
+        loss: 0,
+        state: `active`,
+        rate: 80000,
+        adr: `95.159.190.250:50442`,
+      },
+      {
+        userid: 11,
+        name: 'seul',
+        steam_id: `148928588`,
+        connected: '23:18',
+        ping: 100,
+        loss: 0,
+        state: `active`,
+        rate: 80000,
+        adr: `188.186.228.16:18638`,
       },
     ]);
   });
@@ -190,5 +333,20 @@ describe('parseStatusResponse', () => {
         adr: `85.14.01.93:6092`,
       },
     ]);
+  });
+  it('should parse bad encoding status row', () => {
+    const statusRow = `#  9 8 "P PPPPP"PP  PPPP"P" [U:1:254190013] 23:53 133 0 active 80000 212.15.61.67:62952`;
+    const parsed = parseStatusRow(statusRow);
+    expect(parsed).toEqual({
+      userid: 8,
+      name: `P PPPPP"PP  PPPP"P`,
+      steam_id: '254190013',
+      connected: '23:53',
+      ping: 133,
+      loss: 0,
+      state: 'active',
+      rate: 80000,
+      adr: '212.15.61.67:62952',
+    } satisfies SrcdsPlayerMetric);
   });
 });
