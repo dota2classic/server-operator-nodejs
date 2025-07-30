@@ -61,6 +61,9 @@ const EventHandlers = [
             options: {
               host: config.get('redis.host'),
               password: config.get('redis.password'),
+              reconnectOnError: () => true,
+              connectTimeout: 3000,
+              keepAlive: 1,
             },
           } satisfies RedisOptions;
         },
