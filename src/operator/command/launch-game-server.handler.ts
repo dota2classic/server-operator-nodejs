@@ -91,17 +91,20 @@ export class LaunchGameServerCommandHandler
 
     this.logger.log('MatchInfo for base64', schema);
 
+    const tickrate =
+      command.lobbyType == MatchmakingMode.UNRANKED ||
+      command.lobbyType === MatchmakingMode.LOBBY
+        ? 64
+        : 30;
+
     await this.docker.startGameServer(
       map,
       schema,
       true,
       gameMode,
       `match_${matchId}.log`,
-      // command.lobbyType == MatchmakingMode.UNRANKED ||
-      // command.lobbyType === MatchmakingMode.LOBBY
-      // ? 64
-      // : 30,
-      30,
+      tickrate,
+      // 30,
       matchId,
       freePort,
     );
