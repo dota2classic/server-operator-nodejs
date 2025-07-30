@@ -65,7 +65,7 @@ export class LaunchGameServerCommandHandler
 
     const freePort = await getFreePort();
     const serverUrl = `${this.config.get('srcds.host')}:${freePort}`;
-    const tickrate = 30;
+    // const tickrate = 30;
 
     const schema: RunServerSchema = {
       matchId: command.matchId,
