@@ -63,6 +63,8 @@ const EventHandlers = [
               password: config.get('redis.password'),
               reconnectOnError: () => true,
               connectTimeout: 3000,
+              retryAttempts: 100000,
+              maxRetriesPerRequest: 10,
               keepAlive: 1,
             },
           } satisfies RedisOptions;
