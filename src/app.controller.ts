@@ -110,12 +110,18 @@ export class AppController {
     const failedPlayers = d.players.filter(
       (t) => t.connection === DotaConnectionState.DOTA_CONNECTION_STATE_FAILED,
     );
+
+    const goodPlayers = d.players.filter(
+      (t) => t.connection !== DotaConnectionState.DOTA_CONNECTION_STATE_FAILED,
+    );
+
     if (failedPlayers.length > 0) {
       this.matchStatusService.matchFailed(
         new MatchFailedEvent(
           d.match_id,
           d.server,
-          failedPlayers.map((plr) => new PlayerId(plr.steam_id.toString())),
+          failedPlayers.map((plr) => plr.steam_id),
+          goodPlayers.map((plr) => plr.steam_id),
         ),
       );
     }
