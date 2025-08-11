@@ -48,7 +48,7 @@ export interface FailedPlayerInfo {
 }
 
 export interface MatchFailedOnSRCDS {
-  players: SlotInfoDto[];
+  players: FailedPlayerInfo[];
   match_id: number;
   server: string;
 }

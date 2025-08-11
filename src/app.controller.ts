@@ -111,17 +111,20 @@ export class AppController {
       (t) => t.connection === DotaConnectionState.DOTA_CONNECTION_STATE_FAILED,
     );
 
-    const goodPlayers = d.players.filter(
-      (t) => t.connection !== DotaConnectionState.DOTA_CONNECTION_STATE_FAILED,
-    );
+    const goodParties = d.players
+      .map((t) => t.party_id)
+      .filter(
+        (partyId) =>
+          failedPlayers.findIndex((plr) => plr.party_id === partyId) === -1,
+      );
 
     if (failedPlayers.length > 0) {
       this.matchStatusService.matchFailed(
         new MatchFailedEvent(
           d.match_id,
           d.server,
-          failedPlayers.map((plr) => plr.steam_id),
-          goodPlayers.map((plr) => plr.steam_id),
+          failedPlayers.map((plr) => plr.steam_id.toString()),
+          goodParties,
         ),
       );
     }
