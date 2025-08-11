@@ -207,7 +207,7 @@ export class DockerService implements OnApplicationBootstrap {
     await this.createDockerNetwork();
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_5_MINUTES)
   public async checkForUpdates() {
     this.logger.log('Running scheduled update check');
     // First check for server image
