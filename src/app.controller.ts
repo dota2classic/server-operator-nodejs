@@ -141,9 +141,7 @@ export class AppController {
       server: d.server,
     });
     this.matchStatusService.matchFailed(
-      new MatchFailedEvent(d.match_id, d.server, [
-        new PlayerId(d.steam_id + ''),
-      ]),
+      new MatchFailedEvent(d.match_id, d.server, [d.steam_id + ''], []),
     );
   }
 
