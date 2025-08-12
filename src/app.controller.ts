@@ -154,6 +154,7 @@ export class AppController {
       mode: d.mode,
       server: d.server,
       abandon_index: d.abandon_index,
+      game_state: d.game_state,
     });
     this.matchStatusService.playerAbandon(
       new PlayerAbandonedEvent(
@@ -161,6 +162,7 @@ export class AppController {
         d.match_id,
         d.abandon_index,
         d.mode,
+        d.game_state,
       ),
     );
   }

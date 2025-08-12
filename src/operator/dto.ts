@@ -59,6 +59,7 @@ export interface PlayerAbandonOnSRCDS {
   abandon_index: number;
   mode: MatchmakingMode;
   server: string;
+  game_state: Dota_GameRulesState;
 }
 
 export interface PlayerNotLoadedOnSRCDS {
