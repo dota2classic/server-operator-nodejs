@@ -17,6 +17,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import * as fs from 'fs';
 import { EventBus } from '@nestjs/cqrs';
 import { ServerStatusEvent } from '../gateway/events/gs/server-status.event';
+import { DotaPatch } from '../gateway/constants/patch';
 
 @Injectable()
 export class DockerService implements OnApplicationBootstrap {
@@ -41,6 +42,15 @@ export class DockerService implements OnApplicationBootstrap {
     }
 
     return true;
+  }
+
+  private getImageForPatch(patch: DotaPatch): string {
+    switch (patch) {
+      case DotaPatch.DOTA_684:
+        return this.config.get(`srcds.image.${DotaPatch.DOTA_684}`);
+      case DotaPatch.DOTA_684_TURBO:
+        return this.config.get(`srcds.image.${DotaPatch.DOTA_684_TURBO}`);
+    }
   }
 
   public async startGameServer(
@@ -74,7 +84,7 @@ export class DockerService implements OnApplicationBootstrap {
     this.logger.log(`Running in ${runOnHostNetwork ? 'host' : 'network'} mode`);
     this.serverStartMap.set(matchId, new Date());
     this.docker.run(
-      this.config.get('srcds.serverImage'),
+      this.getImageForPatch(schema.patch),
       [],
       devnullstd(),
       {
@@ -203,7 +213,7 @@ export class DockerService implements OnApplicationBootstrap {
 
   async onApplicationBootstrap() {
     await this.createVolume();
-    await this.updateImage(this.config.get('srcds.serverImage'));
+    await this.checkForUpdates();
     await this.createDockerNetwork();
   }
 
@@ -211,7 +221,12 @@ export class DockerService implements OnApplicationBootstrap {
   public async checkForUpdates() {
     this.logger.log('Running scheduled update check');
     // First check for server image
-    await this.updateImage(this.config.get('srcds.serverImage'));
+    await this.updateImage(
+      this.config.get(`srcds.image.${DotaPatch.DOTA_684}`),
+    );
+    await this.updateImage(
+      this.config.get(`srcds.image.${DotaPatch.DOTA_684_TURBO}`),
+    );
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS)

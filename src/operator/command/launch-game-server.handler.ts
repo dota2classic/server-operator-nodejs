@@ -8,6 +8,7 @@ import { DockerService } from '../../docker/docker.service';
 import { DotaTeam } from '../../gateway/shared-types/dota-team';
 import { MatchmakingMode } from '../../gateway/shared-types/matchmaking-mode';
 import { Dota_GameMode } from '../../gateway/shared-types/dota-game-mode';
+import { DotaPatch } from '../../gateway/constants/patch';
 
 export interface RunServerSchema {
   matchId: number;
@@ -19,6 +20,7 @@ export interface RunServerSchema {
   enableCheats: boolean;
   strictPause: boolean;
   players: Player[];
+  patch: DotaPatch;
 }
 
 export interface Player {
@@ -75,6 +77,7 @@ export class LaunchGameServerCommandHandler
       serverUrl: serverUrl,
       fillBots: command.fillBots,
       enableCheats: command.enableCheats,
+      patch: command.patch,
       strictPause:
         command.lobbyType != MatchmakingMode.LOBBY &&
         command.gameMode !== Dota_GameMode.CAPTAINS_MODE,
