@@ -1,4 +1,4 @@
-import { Controller, Logger } from '@nestjs/common';
+import { Controller, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { LaunchGameServerCommand } from './gateway/commands/LaunchGameServer/launch-game-server.command';
 import { LaunchGameServerNewResponse } from './operator/command/launch-game-server-new.response';
@@ -8,23 +8,40 @@ import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { KillServerRequestedEvent } from './gateway/events/gs/kill-server-requested.event';
 import { ServerActualizationRequestedEvent } from './gateway/events/gs/server-actualization-requested.event';
 import { RunRconCommand } from './gateway/commands/RunRcon/run-rcon.command';
-import { Nack, RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
+import { AmqpConnection, Nack } from '@golevelup/nestjs-rabbitmq';
+import { ConfigService } from '@nestjs/config';
+import { Region } from './gateway/shared-types/region';
 
 @Controller()
-export class EventsController {
+export class EventsController implements OnApplicationBootstrap {
   private readonly logger = new Logger('EventsController');
 
   constructor(
     private readonly cbus: CommandBus,
     private readonly ebus: EventBus,
+    private readonly rmq: AmqpConnection,
+    private readonly config: ConfigService,
   ) {}
 
-  @RabbitSubscribe({
-    exchange: 'app.events',
-    routingKey: LaunchGameServerCommand.name,
-    queue: `operator-queue.${LaunchGameServerCommand.name}`,
-  })
-  private async createTicketMessageNotification(data: LaunchGameServerCommand) {
+  async onApplicationBootstrap() {
+    const region = this.config.get<Region>('srcds.region') || Region.RU_MOSCOW;
+    await this.rmq.createSubscriber(
+      this.launchGameServer,
+      {
+        exchange: `app.events`,
+        routingKey: `${LaunchGameServerCommand.name}.${region}`,
+        queue: `operator-queue.${LaunchGameServerCommand.name}.${region}`,
+      },
+      'launchGameServer',
+    );
+  }
+
+  // @RabbitSubscribe({
+  //   exchange: 'app.events',
+  //   routingKey: LaunchGameServerCommand.name,
+  //   queue: `operator-queue.${LaunchGameServerCommand.name}`,
+  // })
+  private async launchGameServer(data: LaunchGameServerCommand) {
     const result = await this.cbus.execute<
       LaunchGameServerCommand,
       LaunchGameServerNewResponse
@@ -35,7 +52,10 @@ export class EventsController {
       });
       return new Nack(true);
     }
-    this.logger.log('Acked run command for match', { match_id: data.matchId });
+    this.logger.log('Acked run command for match', {
+      match_id: data.matchId,
+      region: data.region,
+    });
 
     await new Promise((resolve) => setTimeout(resolve, 5000));
     this.ebus.publish(new SrcdsServerStartedEvent(result.server, data));
