@@ -41,7 +41,8 @@ export class EventsController implements OnApplicationBootstrap {
   //   routingKey: LaunchGameServerCommand.name,
   //   queue: `operator-queue.${LaunchGameServerCommand.name}`,
   // })
-  private async launchGameServer(data: LaunchGameServerCommand) {
+  private launchGameServer = async (data: LaunchGameServerCommand) => {
+    this.logger.log('Launch?');
     const result = await this.cbus.execute<
       LaunchGameServerCommand,
       LaunchGameServerNewResponse
@@ -63,7 +64,7 @@ export class EventsController implements OnApplicationBootstrap {
       match_id: data.matchId,
       server_url: result.server,
     });
-  }
+  };
 
   // Redis
   @MessagePattern(KillServerRequestedEvent.name)
