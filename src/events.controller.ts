@@ -25,6 +25,9 @@ export class EventsController implements OnApplicationBootstrap {
 
   async onApplicationBootstrap() {
     const region = this.config.get<Region>('srcds.region') || Region.RU_MOSCOW;
+    this.logger.log(
+      `Binding "${LaunchGameServerCommand.name}.${region}" to "operator-queue.${LaunchGameServerCommand.name}.${region}"`,
+    );
     await this.rmq.createSubscriber(
       this.launchGameServer,
       {
