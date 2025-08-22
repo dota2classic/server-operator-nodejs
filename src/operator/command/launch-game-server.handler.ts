@@ -97,7 +97,7 @@ export class LaunchGameServerCommandHandler
     const tickrate =
       command.lobbyType == MatchmakingMode.UNRANKED ||
       command.lobbyType === MatchmakingMode.LOBBY
-        ? 48
+        ? 32
         : 30;
 
     await this.docker.startGameServer(
