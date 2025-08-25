@@ -6,6 +6,7 @@ import * as path from 'path';
 import { PutObjectCommandInput } from '@aws-sdk/client-s3';
 import { DockerService } from './docker/docker.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { zipBuffer } from './util/zipBuffer';
 
 @Injectable()
 export class ReplayService {
@@ -26,9 +27,16 @@ export class ReplayService {
     rootFolder: string,
     targetFilename: string,
     bucket: 'logs' | 'replays',
+    compress: boolean,
   ) {
     this.logger.log(`Uploading entity of match ${matchId}`);
-    const file = await fs.promises.readFile(path.join(rootFolder, filename));
+
+    let file = await fs.promises.readFile(path.join(rootFolder, filename));
+
+    if (compress) {
+      file = await zipBuffer(file, targetFilename);
+      targetFilename = targetFilename + '.zip';
+    }
 
     const putObjectCommandInput: PutObjectCommandInput = {
       Bucket: bucket,
@@ -69,20 +77,18 @@ export class ReplayService {
   //   }
   // }
 
-  @Cron(CronExpression.EVERY_MINUTE)
-  private async checkUploadableReplays() {
-    await this.scanUploadableEntities('replays', 'replays', 10);
-    await this.scanUploadableEntities('configs', 'logs', 10);
-    await this.scanUploadableEntities('logs', 'logs', 50);
-  }
-
   @Cron(CronExpression.EVERY_10_SECONDS)
-  private async checkUploadableLogs() {}
+  private async checkUploadableReplays() {
+    await this.scanUploadableEntities('replays', 'replays', 10, true);
+    await this.scanUploadableEntities('configs', 'logs', 10, false);
+    await this.scanUploadableEntities('logs', 'logs', 50, false);
+  }
 
   private async scanUploadableEntities(
     entityFolder: 'logs' | 'replays' | 'configs',
     bucket: 'logs' | 'replays',
     limit: number = 100,
+    compress: boolean,
   ) {
     if (this.procMap.get(bucket)) {
       this.logger.log('Skipping entity check: another one in progress', {
@@ -105,6 +111,7 @@ export class ReplayService {
         entityFolder,
       );
       const logs = (await fs.promises.readdir(rootFolder)).slice(0, limit); // Let's do 50 at a time
+
       for (let entity of logs) {
         const filePath = path.join(rootFolder, entity);
         const lstat = await fs.promises.lstat(filePath);
@@ -143,6 +150,7 @@ export class ReplayService {
           rootFolder,
           bucket === 'logs' ? `${matchId}.log` : `${matchId}.dem`,
           bucket,
+          compress,
         );
       }
     } catch (e) {
