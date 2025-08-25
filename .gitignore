@@ -6,7 +6,7 @@ runscreen.sh
 ansible
 # Logs
 logs
-install.sh
+server.sh
 *.log
 logs.sh
 npm-debug.log*

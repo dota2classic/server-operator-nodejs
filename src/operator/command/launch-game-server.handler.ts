@@ -9,6 +9,7 @@ import { DotaTeam } from '../../gateway/shared-types/dota-team';
 import { MatchmakingMode } from '../../gateway/shared-types/matchmaking-mode';
 import { Dota_GameMode } from '../../gateway/shared-types/dota-game-mode';
 import { DotaPatch } from '../../gateway/constants/patch';
+import { Region } from '../../gateway/shared-types/region';
 
 export interface RunServerSchema {
   matchId: number;
@@ -21,6 +22,7 @@ export interface RunServerSchema {
   strictPause: boolean;
   players: Player[];
   patch: DotaPatch;
+  region: Region;
 }
 
 export interface Player {
@@ -78,6 +80,7 @@ export class LaunchGameServerCommandHandler
       fillBots: command.fillBots,
       enableCheats: command.enableCheats,
       patch: command.patch,
+      region: command.region,
       strictPause:
         command.lobbyType != MatchmakingMode.LOBBY &&
         command.gameMode !== Dota_GameMode.CAPTAINS_MODE,
