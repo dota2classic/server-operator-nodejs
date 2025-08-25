@@ -3,6 +3,8 @@ import { Dota_GameRulesState } from 'src/gateway/shared-types/dota-game-rules-st
 import { DotaConnectionState } from 'src/gateway/shared-types/dota-player-connection-state';
 import { DotaTeam } from 'src/gateway/shared-types/dota-team';
 import { MatchmakingMode } from 'src/gateway/shared-types/matchmaking-mode';
+import { Region } from '../gateway/shared-types/region';
+import { DotaPatch } from '../gateway/constants/patch';
 
 export interface LiveMatchDto {
   match_id: number;
@@ -88,6 +90,8 @@ export interface MatchFinishedOnSRCDS {
   gameMode: Dota_GameMode;
   timestamp: number;
   server: string;
+  region: Region;
+  patch: DotaPatch;
   players: SRCDSPlayer[];
 }
 
