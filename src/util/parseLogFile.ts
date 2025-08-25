@@ -280,6 +280,9 @@ export async function fillAdditionalDataFromLog(
   const log = await fs.promises.readFile(logFile).then((it) => it.toString());
   const parsedLogFile = parseLog(log);
 
+  evt.towerStatus = parsedLogFile.tower_status;
+  evt.barracksStatus = parsedLogFile.barracks_status;
+
   parsedLogFile.teams
     .flatMap((t) => t.players)
     .forEach((player) => {

@@ -51,8 +51,14 @@ export class SrcdsMapper {
           towerDamage: 0,
 
           hero: p.hero,
+
+          supportAbilityValue: 0,
+          supportGold: 0,
+          misses: 0,
         };
       }),
+      [0, 0],
+      [0, 0],
     );
   };
 }

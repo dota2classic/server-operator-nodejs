@@ -113,6 +113,8 @@ describe('filling additional data', () => {
       server: 'fsdfdsf:4242',
       region: Region.RU_MOSCOW,
       patch: DotaPatch.DOTA_684,
+      barracksStatus: [],
+      towerStatus: [],
       players: [
         {
           steam_id: '1608039572',
@@ -184,5 +186,7 @@ describe('filling additional data', () => {
     expect(evt.players[0].networth).toEqual(4435);
     expect(evt.players[0].bear).toEqual([50, 182, 172, 143, 0, 0]);
     expect(evt.players[1].bear).toBeUndefined();
+    expect(evt.towerStatus).toEqual([2047, 2039]);
+    expect(evt.barracksStatus).toEqual([63, 63]);
   });
 });
