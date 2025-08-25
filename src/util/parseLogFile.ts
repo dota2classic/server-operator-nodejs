@@ -2,55 +2,93 @@ import { GameResultsEvent } from 'src/gateway/events/gs/game-results.event';
 import * as fs from 'fs';
 import { Logger } from '@nestjs/common';
 
-interface LogData {
+export interface ParsedProtobufMessage {
   duration: number;
+  good_guys_win: boolean;
   date: number;
   num_players: number[];
-  steam_id: string[];
-  hero_id: number[];
-  items: number[];
-  gold: number[];
-  kills: number[];
-  deaths: number[];
-  assists: number[];
-  leaver_status: number[];
-  last_hits: number[];
-  denies: number[];
-  gold_per_min: number[];
-  xp_per_minute: number[];
-  gold_spent: number[];
-  level: number[];
-  hero_damage: number[];
-  tower_damage: number[];
-  hero_healing: number[];
-  time_last_seen: number[];
-  support_ability_value: number[];
-  party_id: number[];
-  scaled_kills: number[];
-  scaled_deaths: number[];
-  scaled_assists: number[];
-  claimed_farm_gold: number[];
-  support_gold: number[];
-  claimed_denies: number[];
-  claimed_misses: number[];
-  misses: number[];
-  net_worth: number[];
-  ability: number[];
-  time: number[];
+  teams: Team[];
   tower_status: number[];
   barracks_status: number[];
   cluster: number;
+  server_addr: string;
   first_blood_time: number;
   game_balance: number;
+  automatic_surrender: boolean;
   server_version: number;
-  id: number;
+  additional_msgs: AdditionalMsgs;
   average_networth_delta: number;
+  networth_delta_min10: number;
+  networth_delta_min20: number;
   maximum_losing_networth_lead: number;
   average_experience_delta: number;
+  experience_delta_min10: number;
+  experience_delta_min20: number;
+  bonus_gold_winner_min10: number;
+  bonus_gold_winner_min20: number;
   bonus_gold_winner_total: number;
+  bonus_gold_loser_min10: number;
+  bonus_gold_loser_min20: number;
   bonus_gold_loser_total: number;
   match_id: number;
   region_id: number;
+  players: PlayerConnectionInfo[];
+}
+
+export interface Team {
+  players: Player[];
+}
+
+export interface Player {
+  steam_id: number;
+  hero_id: number;
+  items: number[];
+  gold: number;
+  kills: number;
+  deaths: number;
+  assists: number;
+  leaver_status: number;
+  last_hits: number;
+  denies: number;
+  gold_per_min: number;
+  xp_per_minute: number;
+  gold_spent: number;
+  level: number;
+  hero_damage: number;
+  tower_damage: number;
+  hero_healing: number;
+  time_last_seen: number;
+  support_ability_value: number;
+  party_id: number;
+  scaled_kills: number;
+  scaled_deaths: number;
+  scaled_assists: number;
+  claimed_farm_gold: number;
+  support_gold: number;
+  claimed_denies: number;
+  claimed_misses: number;
+  misses: number;
+  ability_upgrades: AbilityUpgrade[];
+  net_worth: number;
+  additional_units_inventory?: AdditionalUnitsInventory;
+}
+
+export interface AbilityUpgrade {
+  ability: number;
+  time: number;
+}
+
+export interface AdditionalUnitsInventory {
+  unit_name: string[];
+  items: number[];
+}
+
+export interface AdditionalMsgs {
+  id: number[];
+  contents: string[];
+}
+
+export interface PlayerConnectionInfo {
   account_id: number;
   ip: number;
   avg_ping_ms: number;
@@ -60,48 +98,174 @@ interface LogData {
 }
 
 const numberRegex = /\d+/;
-export const parseLog = (rawLog: string): LogData => {
+
+// const parseLogV2 = (raw: string) => {
+//
+//   // console.log(raw)
+//   raw = raw.replaceAll(/([a-zA-Z_]+):/g, `"$1":`)
+//   raw = raw.replaceAll(/(?<!\{)\n/g, ',\n')
+//   console.log(raw)
+// }
+
+type Token = string;
+
+interface ParsedObject {
+  [key: string]: any;
+}
+
+function collapseRepeated(result: ParsedObject, noCollapseKeys: string[]) {
+  for (const key in result) {
+    if (Array.isArray(result[key])) {
+      Object.values(result[key]).forEach((value: ParsedObject) =>
+        collapseRepeated(value, noCollapseKeys),
+      );
+      if (result[key].length === 1 && !noCollapseKeys.includes(key)) {
+        result[key] = result[key][0];
+      }
+    } else if (typeof result[key] === 'object') {
+      collapseRepeated(result[key], noCollapseKeys);
+    }
+  }
+}
+
+export function parseLog(input: string): ParsedProtobufMessage {
   const regex = new RegExp(/\d\d\/\d\d\/\d\d\d\d - \d\d:\d\d:\d\d: /g);
-  const log = rawLog.replaceAll(regex, '');
+  const log = input.replaceAll(regex, '');
   const startSignal = 'SIGNOUT: Job created, Protobuf:';
 
   let dataStartIndex = log.indexOf(startSignal) + startSignal.length;
   dataStartIndex = dataStartIndex + 1;
 
-  let dataEndIndex = log.indexOf('\ncluster_id');
+  const dataEndIndex = log.indexOf('\ncluster_id');
 
-  let jsonLikeData = `{ ${log.slice(dataStartIndex, dataEndIndex)} }`;
+  const rawData = log.slice(dataStartIndex, dataEndIndex);
 
-  const fields = new RegExp(/([0-9a-zA-Z_]+: (\d+))/, 'g');
+  // Remove comments
+  const cleanedInput = rawData.replace(/#.*$/gm, '').trim();
 
-  const obj = {};
-  Array.from(jsonLikeData.matchAll(fields)).forEach((match) => {
-    const key = match[0].split(': ')[0];
+  // Tokenize input
+  const tokens: Token[] = tokenize(cleanedInput);
 
-    const isNumber = numberRegex.test(match[2]);
-    let value: number | string | BigInt;
+  // Parse tokens starting from index 0
+  const [result, _] = parseObject(tokens, 0);
 
-    if (isNumber && match[2].length > 10) {
-      value = BigInt(match[2]);
-    } else if (isNumber) {
-      value = Number(match[2]);
-    } else {
-      value = match[2];
+  // Convert arrays with single element to single value
+  collapseRepeated(result, [
+    'players',
+    'teams',
+    'items',
+    'tower_status',
+    'barracks_status',
+    'ability_upgrades',
+  ]);
+
+  return result as ParsedProtobufMessage;
+}
+
+function tokenize(input: string): Token[] {
+  const tokens: Token[] = [];
+  const regex = /(\{|\}|:)|([^\s\{\}\:]+)/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(input)) !== null) {
+    if (match[1]) {
+      tokens.push(match[1]);
+    } else if (match[2]) {
+      tokens.push(match[2]);
+    }
+  }
+
+  return tokens;
+}
+
+function parseObject(
+  tokens: Token[],
+  startIndex: number,
+): [ParsedObject, number] {
+  const obj: ParsedObject = {};
+  let i = startIndex;
+
+  while (i < tokens.length) {
+    const token = tokens[i];
+
+    if (token === '}') {
+      return [obj, i + 1];
     }
 
-    const arr = obj[key] || [];
-    obj[key] = [...arr, value];
-  });
+    if (token === '{') {
+      // Unexpected '{' without key - skip
+      i++;
+      continue;
+    }
 
-  const obj2 = {};
-  Object.entries(obj).forEach(([key, value]) => {
-    if ((value as any[]).length === 1) {
-      obj2[key] = value[0];
-    } else obj2[key] = value;
-  });
+    // Parse key
+    const key = token;
+    i++;
 
-  return obj2 as LogData;
-};
+    if (tokens[i] === ':') {
+      // Key-value pair with colon
+      i++; // skip colon
+
+      if (tokens[i] === '{') {
+        // Nested object
+        i++; // skip '{'
+        const [nestedObj, nextIndex] = parseObject(tokens, i);
+        addToResult(obj, key, nestedObj);
+        i = nextIndex;
+      } else {
+        // Primitive value
+        const valueToken = tokens[i];
+        const value = parseValue(valueToken);
+        addToResult(obj, key, value);
+        i++;
+      }
+    } else if (tokens[i] === '{') {
+      // Nested object without colon
+      i++; // skip '{'
+      const [nestedObj, nextIndex] = parseObject(tokens, i);
+      addToResult(obj, key, nestedObj);
+      i = nextIndex;
+    } else {
+      // No colon or brace; treat as primitive
+      const valueToken = tokens[i];
+      const value = parseValue(valueToken);
+      addToResult(obj, key, value);
+      i++;
+    }
+  }
+
+  return [obj, i];
+}
+
+// Helper to add values to object with array logic
+function addToResult(obj: ParsedObject, key: string, value: any) {
+  if (!(key in obj)) {
+    obj[key] = [];
+  }
+  obj[key].push(value);
+}
+
+// Helper to parse primitive values
+function parseValue(token: string): any {
+  // Remove surrounding quotes if present
+  if (
+    (token.startsWith('"') && token.endsWith('"')) ||
+    (token.startsWith("'") && token.endsWith("'"))
+  ) {
+    return token.slice(1, -1);
+  }
+
+  // Match decimal numbers, including optional sign, decimal point, and scientific notation
+  const numberRegex = /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/;
+
+  if (numberRegex.test(token)) {
+    return parseFloat(token);
+  }
+
+  if (/^(true|false)$/i.test(token)) return token.toLowerCase() === 'true';
+
+  return token;
+}
 
 export async function fillAdditionalDataFromLog(
   evt: GameResultsEvent,
@@ -116,42 +280,31 @@ export async function fillAdditionalDataFromLog(
   const log = await fs.promises.readFile(logFile).then((it) => it.toString());
   const parsedLogFile = parseLog(log);
 
-  Object.assign(evt, {
-    players: evt.players.map((it, _index) => {
-      // For 4x5 case, we should not trust index
-
-      let index = parsedLogFile.steam_id.findIndex((steam64) => {
-        const steam32 = (
-          BigInt(steam64.toString()) - BigInt('76561197960265728')
-        ).toString();
-        return steam32 === it.steam_id;
-      });
-
-      if (index === -1) {
-        logger.warn("Couldn't find player in match", {
-          steam_id: it.steam_id,
-          match_id: evt.matchId,
-        });
-        index = _index;
+  parsedLogFile.teams
+    .flatMap((t) => t.players)
+    .forEach((player) => {
+      const steam32 = (
+        BigInt(player.steam_id.toString()) - BigInt('76561197960265728')
+      ).toString();
+      const baseData = evt.players.find((t) => t.steam_id === steam32);
+      if (!baseData) {
+        logger.warn(
+          `Didn't find base player data for steam id ${player.steam_id}!`,
+        );
+        return;
       }
 
-      const gpm = parsedLogFile.gold_per_min[index];
-      const xpm = parsedLogFile.xp_per_minute[index];
-      const heroDamage = parsedLogFile.hero_damage[index];
-      const heroHealing = parsedLogFile.hero_healing[index];
-      const towerDamage = parsedLogFile.tower_damage[index];
-      const netWorth = parsedLogFile.net_worth[index];
-      return {
-        ...it,
-        gpm,
-        xpm,
-        heroDamage,
-        heroHealing,
-        towerDamage,
-        netWorth,
-      };
-    }),
-  });
+      baseData.gpm = player.gold_per_min;
+      baseData.xpm = player.xp_per_minute;
+      baseData.heroDamage = player.hero_damage;
+      baseData.heroHealing = player.hero_healing;
+      baseData.towerDamage = player.tower_damage;
+      baseData.networth = player.net_worth;
+      baseData.supportGold = player.support_gold;
+      baseData.supportAbilityValue = player.support_ability_value;
+      baseData.misses = player.misses;
+      baseData.bear = player.additional_units_inventory?.items;
+    });
 
   logger.log('Log file parsed', { log_file: logFile, match_id: evt.matchId });
 }
