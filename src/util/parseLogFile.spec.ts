@@ -189,4 +189,57 @@ describe('filling additional data', () => {
     expect(evt.towerStatus).toEqual([2047, 2039]);
     expect(evt.barracksStatus).toEqual([63, 63]);
   });
+
+  it('should parse', () => {
+    const evt: GameResultsEvent = {
+      matchId: 24046,
+      winner: DotaTeam.RADIANT,
+      duration: 3010,
+      type: MatchmakingMode.LOBBY,
+      gameMode: Dota_GameMode.ALLPICK,
+      timestamp: 1756641905,
+      server: '45.131.187.213:23772',
+      region: Region.RU_MOSCOW,
+      patch: DotaPatch.DOTA_684,
+
+      towerStatus: [1828, 260],
+      barracksStatus: [63, 51],
+
+      players: [
+        {
+          hero: 'npc_dota_hero_alchemist',
+          steam_id: '116514945',
+          partyIndex: 0,
+          team: 2,
+          level: 14,
+          kills: 0,
+          deaths: 0,
+          assists: 0,
+          gpm: 156,
+          xpm: 224,
+          last_hits: 13,
+          denies: 0,
+          networth: 8754,
+          abandoned: false,
+
+          item0: 0,
+          item1: 0,
+          item2: 0,
+          item3: 0,
+          item4: 0,
+          item5: 0,
+
+          supportAbilityValue: 0,
+          supportGold: 0,
+          misses: 0,
+
+          heroDamage: 0,
+          towerDamage: 0,
+          heroHealing: 0,
+        },
+      ],
+    };
+
+    fillAdditionalDataFromLog(evt, 'test/bad.log');
+  });
 });

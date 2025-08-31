@@ -283,6 +283,8 @@ export async function fillAdditionalDataFromLog(
   evt.towerStatus = parsedLogFile.tower_status;
   evt.barracksStatus = parsedLogFile.barracks_status;
 
+  console.log(JSON.stringify(parsedLogFile));
+
   parsedLogFile.teams
     .flatMap((t) => t.players)
     .forEach((player) => {
