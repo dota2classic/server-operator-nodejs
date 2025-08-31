@@ -14,6 +14,8 @@ export interface LiveMatchDto {
   timestamp: number;
   duration: number;
   server: string;
+  towers: [number, number];
+  barracks: [number, number];
   heroes: SlotInfoDto[];
 }
 

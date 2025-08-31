@@ -55,6 +55,8 @@ export class AppController {
       game_mode: it.game_mode,
       game_state: it.game_state,
       duration: it.duration,
+      towers: it.towers,
+      barracks: it.barracks,
       timestamp: it.timestamp,
       heroes: it.heroes.map((h) => {
         return {
