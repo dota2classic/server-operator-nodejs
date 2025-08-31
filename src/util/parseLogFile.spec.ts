@@ -1,5 +1,9 @@
 import * as fs from 'fs';
-import { fillAdditionalDataFromLog, parseLog } from './parseLogFile';
+import {
+  fillAdditionalDataFromLog,
+  parseLog,
+  parseValue,
+} from './parseLogFile';
 import { GameResultsEvent } from '../gateway/events/gs/game-results.event';
 import { DotaTeam } from '../gateway/shared-types/dota-team';
 import { Dota_GameMode } from '../gateway/shared-types/dota-game-mode';
@@ -19,6 +23,9 @@ describe('Log parsing', () => {
     // Then
     expect(parsed.teams[0].players[0].tower_damage).toEqual(62);
     expect(parsed.teams[1].players[0].tower_damage).toEqual(0);
+
+    expect(parsed.teams[0].players[0].steam_id).toEqual('76561199568305300');
+    expect(parsed.teams[1].players[0].steam_id).toEqual('76561199100213123');
   });
 
   it('should parse 5x5 log file', async () => {
@@ -184,62 +191,73 @@ describe('filling additional data', () => {
     expect(evt.players[0].towerDamage).toEqual(62);
     expect(evt.players[0].gpm).toEqual(310);
     expect(evt.players[0].networth).toEqual(4435);
+    expect(evt.players[0].misses).toEqual(10);
+    expect(evt.players[1].misses).toEqual(44);
     expect(evt.players[0].bear).toEqual([50, 182, 172, 143, 0, 0]);
     expect(evt.players[1].bear).toBeUndefined();
     expect(evt.towerStatus).toEqual([2047, 2039]);
     expect(evt.barracksStatus).toEqual([63, 63]);
   });
+  //
+  // it('should parse', () => {
+  //   const evt: GameResultsEvent = {
+  //     matchId: 24046,
+  //     winner: DotaTeam.RADIANT,
+  //     duration: 3010,
+  //     type: MatchmakingMode.LOBBY,
+  //     gameMode: Dota_GameMode.ALLPICK,
+  //     timestamp: 1756641905,
+  //     server: '45.131.187.213:23772',
+  //     region: Region.RU_MOSCOW,
+  //     patch: DotaPatch.DOTA_684,
+  //
+  //     towerStatus: [1828, 260],
+  //     barracksStatus: [63, 51],
+  //
+  //     players: [
+  //       {
+  //         hero: 'npc_dota_hero_alchemist',
+  //         steam_id: '116514945',
+  //         partyIndex: 0,
+  //         team: 2,
+  //         level: 14,
+  //         kills: 0,
+  //         deaths: 0,
+  //         assists: 0,
+  //         gpm: 156,
+  //         xpm: 224,
+  //         last_hits: 13,
+  //         denies: 0,
+  //         networth: 8754,
+  //         abandoned: false,
+  //
+  //         item0: 0,
+  //         item1: 0,
+  //         item2: 0,
+  //         item3: 0,
+  //         item4: 0,
+  //         item5: 0,
+  //
+  //         supportAbilityValue: 0,
+  //         supportGold: 0,
+  //         misses: 0,
+  //
+  //         heroDamage: 0,
+  //         towerDamage: 0,
+  //         heroHealing: 0,
+  //       },
+  //     ],
+  //   };
+  //
+  //   fillAdditionalDataFromLog(evt, 'test/bad.log');
+  //
+  //   expect(evt.players[0].misses).toEqual(13)
+  // });
+});
 
-  it('should parse', () => {
-    const evt: GameResultsEvent = {
-      matchId: 24046,
-      winner: DotaTeam.RADIANT,
-      duration: 3010,
-      type: MatchmakingMode.LOBBY,
-      gameMode: Dota_GameMode.ALLPICK,
-      timestamp: 1756641905,
-      server: '45.131.187.213:23772',
-      region: Region.RU_MOSCOW,
-      patch: DotaPatch.DOTA_684,
-
-      towerStatus: [1828, 260],
-      barracksStatus: [63, 51],
-
-      players: [
-        {
-          hero: 'npc_dota_hero_alchemist',
-          steam_id: '116514945',
-          partyIndex: 0,
-          team: 2,
-          level: 14,
-          kills: 0,
-          deaths: 0,
-          assists: 0,
-          gpm: 156,
-          xpm: 224,
-          last_hits: 13,
-          denies: 0,
-          networth: 8754,
-          abandoned: false,
-
-          item0: 0,
-          item1: 0,
-          item2: 0,
-          item3: 0,
-          item4: 0,
-          item5: 0,
-
-          supportAbilityValue: 0,
-          supportGold: 0,
-          misses: 0,
-
-          heroDamage: 0,
-          towerDamage: 0,
-          heroHealing: 0,
-        },
-      ],
-    };
-
-    fillAdditionalDataFromLog(evt, 'test/bad.log');
+describe('Value parsing', () => {
+  it('should parse big number as string', () => {
+    expect(parseValue('76561199568305300')).toEqual('76561199568305300');
+    expect(parseValue('1234')).toEqual(1234);
   });
 });

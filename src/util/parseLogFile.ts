@@ -97,16 +97,6 @@ export interface PlayerConnectionInfo {
   full_resends: number;
 }
 
-const numberRegex = /\d+/;
-
-// const parseLogV2 = (raw: string) => {
-//
-//   // console.log(raw)
-//   raw = raw.replaceAll(/([a-zA-Z_]+):/g, `"$1":`)
-//   raw = raw.replaceAll(/(?<!\{)\n/g, ',\n')
-//   console.log(raw)
-// }
-
 type Token = string;
 
 interface ParsedObject {
@@ -246,7 +236,7 @@ function addToResult(obj: ParsedObject, key: string, value: any) {
 }
 
 // Helper to parse primitive values
-function parseValue(token: string): any {
+export function parseValue(token: string): any {
   // Remove surrounding quotes if present
   if (
     (token.startsWith('"') && token.endsWith('"')) ||
@@ -259,7 +249,29 @@ function parseValue(token: string): any {
   const numberRegex = /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/;
 
   if (numberRegex.test(token)) {
-    return parseFloat(token);
+    // Remove sign for length check
+    const absToken = token.replace(/^[-+]/, '');
+
+    // Extract the integer part (digits before decimal point)
+    const integerPartMatch = absToken.match(/^\d+/);
+    const integerPart = integerPartMatch ? integerPartMatch[0] : '';
+
+    // Check for scientific notation
+    const exponentMatch = absToken.match(/[eE][+-]?\d+$/);
+    const exponentPart = exponentMatch ? exponentMatch[0] : '';
+
+    // Determine total digits in integer part
+    const integerDigitsCount = integerPart.length;
+
+    const BIG_NUMBER_THRESHOLD = 15;
+
+    if (integerDigitsCount > BIG_NUMBER_THRESHOLD) {
+      // Too big to safely convert to number, return as string
+      return token;
+    } else {
+      // Safe to parse as float
+      return parseFloat(token);
+    }
   }
 
   if (/^(true|false)$/i.test(token)) return token.toLowerCase() === 'true';
@@ -282,8 +294,6 @@ export async function fillAdditionalDataFromLog(
 
   evt.towerStatus = parsedLogFile.tower_status;
   evt.barracksStatus = parsedLogFile.barracks_status;
-
-  console.log(JSON.stringify(parsedLogFile));
 
   parsedLogFile.teams
     .flatMap((t) => t.players)
