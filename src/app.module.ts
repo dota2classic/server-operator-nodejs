@@ -82,6 +82,7 @@ const EventHandlers = [
               type: 'topic',
             },
           ],
+          prefetchCount: 1,
           enableControllerDiscovery: true,
           uri: `amqp://${config.get('rabbitmq.user')}:${config.get('rabbitmq.password')}@${config.get('rabbitmq.host')}:${config.get('rabbitmq.port')}`,
         };
