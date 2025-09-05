@@ -1,6 +1,7 @@
 import { GameResultsEvent } from 'src/gateway/events/gs/game-results.event';
 import * as fs from 'fs';
 import { Logger } from '@nestjs/common';
+import { HeroData } from '../gateway/constants/heroes';
 
 export interface ParsedProtobufMessage {
   duration: number;
@@ -301,10 +302,20 @@ export async function fillAdditionalDataFromLog(
       const steam32 = (
         BigInt(player.steam_id.toString()) - BigInt('76561197960265728')
       ).toString();
-      const baseData = evt.players.find((t) => t.steam_id === steam32);
+      let baseData = evt.players.find((t) => t.steam_id === steam32);
       if (!baseData) {
         logger.warn(
-          `Didn't find base player data for steam id ${player.steam_id}!`,
+          `Didn't find base player data for steam id ${player.steam_id}! Using hero id instead`,
+        );
+      }
+
+      baseData = evt.players.find(
+        (t) => HeroData.find((hd) => hd.name === t.hero)?.id === player.hero_id,
+      );
+
+      if (!baseData) {
+        logger.error(
+          `Didn't find base player data for hero ${player.hero_id}! We failed horribly`,
         );
         return;
       }
