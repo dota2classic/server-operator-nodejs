@@ -7,6 +7,9 @@ import { PutObjectCommandInput } from '@aws-sdk/client-s3';
 import { DockerService } from './docker/docker.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { zipBuffer } from './util/zipBuffer';
+import { EventBus } from '@nestjs/cqrs';
+import { MatchArtifactUploadedEvent } from './gateway/events/match-artifact-uploaded.event';
+import { MatchArtifactType } from './gateway/shared-types/match-artifact-type';
 
 @Injectable()
 export class ReplayService {
@@ -18,6 +21,7 @@ export class ReplayService {
     private readonly configService: ConfigService,
     @InjectS3() private readonly s3: S3,
     private readonly docker: DockerService,
+    private readonly ebus: EventBus,
   ) {}
 
   // We should be careful not to upload a running replay
@@ -53,6 +57,17 @@ export class ReplayService {
 
     const res = await this.s3.putObject(putObjectCommandInput);
     this.logger.log(`Uploaded entity of match ${matchId}`, { bucket });
+
+    this.ebus.publish(
+      new MatchArtifactUploadedEvent(
+        matchId,
+        this.docker.matchIdToModeMap.get(matchId),
+        bucket === 'logs' ? MatchArtifactType.LOG : MatchArtifactType.REPLAY,
+        bucket,
+        targetFilename,
+      ),
+    );
+
     try {
       await fs.promises.unlink(path.join(rootFolder, filename));
       this.logger.log(`Deleted local entity of match ${matchId}`, { bucket });

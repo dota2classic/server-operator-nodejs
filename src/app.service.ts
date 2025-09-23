@@ -17,6 +17,7 @@ import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { GameResultsEvent } from './gateway/events/gs/game-results.event';
 import { MatchFailedEvent } from './gateway/events/match-failed.event';
 import { PlayerAbandonedEvent } from './gateway/events/bans/player-abandoned.event';
+import { MatchArtifactUploadedEvent } from './gateway/events/match-artifact-uploaded.event';
 
 @Injectable()
 export class AppService
@@ -54,6 +55,7 @@ export class AppService
           GameResultsEvent,
           MatchFailedEvent,
           PlayerAbandonedEvent,
+          MatchArtifactUploadedEvent,
         ),
       )
       .subscribe((t) =>

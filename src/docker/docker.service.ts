@@ -18,11 +18,13 @@ import * as fs from 'fs';
 import { EventBus } from '@nestjs/cqrs';
 import { ServerStatusEvent } from '../gateway/events/gs/server-status.event';
 import { DotaPatch } from '../gateway/constants/patch';
+import { MatchmakingMode } from '../gateway/shared-types/matchmaking-mode';
 
 @Injectable()
 export class DockerService implements OnApplicationBootstrap {
   private logger = new Logger(DockerService.name);
 
+  public matchIdToModeMap = new Map<number, MatchmakingMode>();
   public serverStartMap = new Map<number, Date>();
 
   constructor(
@@ -82,7 +84,10 @@ export class DockerService implements OnApplicationBootstrap {
     const network = this.config.get('srcds.network');
     const runOnHostNetwork = !network;
     this.logger.log(`Running in ${runOnHostNetwork ? 'host' : 'network'} mode`);
+
     this.serverStartMap.set(matchId, new Date());
+    this.matchIdToModeMap.set(matchId, schema.lobbyType);
+
     this.docker.run(
       this.getImageForPatch(schema.patch),
       [],
