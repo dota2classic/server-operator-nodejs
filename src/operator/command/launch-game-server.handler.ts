@@ -117,57 +117,8 @@ export class LaunchGameServerCommandHandler
 
     this.logger.log('Game container started');
 
-    // const argArray = [
-    //   '-usercon', // Enable RCON
-    //   '-console', // Enable console
-    //   '-maxplayers',
-    //   '14', // Set max players
-    //   '-game',
-    //   'dota', // Game
-    //   '+rcon_password',
-    //   `${this.config.get('srcds.rconPassword')}`, // RCON password
-    //   '+ip',
-    //   '0.0.0.0', // Host
-    //   '-port',
-    //   `${server.port}`,
-    //   '+map',
-    //   `${map}`, // map
-    //   '+tv_enable',
-    //   '1', // enable tv
-    //   '+tv_port',
-    //   `${server.port + 5}`, // set tv port to server + 5
-    //   `-tickrate`,
-    //   tickrate,
-    //   '+dota_force_gamemode',
-    //   `${gameMode}`, // What game mode to run
-    //   '-match',
-    //   `${clConfigBase64}`, // Base64 encoded match data
-    //   '+con_logfile',
-    //   `logs/match_${matchId}.log`,
-    //   '+simple',
-    //   (info.mode === MatchmakingMode.BOTS).toString(),
-    // ];
-
-    // this.logger.log('Launch args', {
-    //   launch_arguments: argArray,
-    //   match_id: matchId,
-    //   server: server.url,
-    // });
-
-    // const args = argArray.join(' ');
-    //
-    // if (process.platform === 'win32') {
-    //   await this.runDedicatedWindows(server.path, args);
-    // } else if (process.platform === 'linux') {
-    //   await this.runDedicatedLinux(server.path, args);
-    // } else {
-    //   throw new Error('Unsupported platform for dedicated server');
-    // }
-    //
-    // this.logger.log('Dedicated server started, continuing');
-
     // Wait here 2 seconds so server is surely started
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     return new LaunchGameServerNewResponse(serverUrl);
   }
