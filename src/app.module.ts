@@ -61,6 +61,7 @@ const EventHandlers = [
             options: {
               host: config.get('redis.host'),
               password: config.get('redis.password'),
+              port: parseInt(config.get('redis.port')) || 6379,
               reconnectOnError: () => true,
               connectTimeout: 3000,
               retryAttempts: 100000,

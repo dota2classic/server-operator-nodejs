@@ -69,8 +69,9 @@ async function bootstrap() {
   app.connectMicroservice({
     transport: Transport.REDIS,
     options: {
-      url: `redis://${config.get('redis.host')}:6379`,
+      url: `redis://${config.get('redis.host')}:${parseInt(config.get('redis.port')) || 6379}`,
       host: config.get('redis.host'),
+      port: parseInt(config.get('redis.port')) || 6379,
       retryAttempts: Infinity,
       retryDelay: 5000,
       password: config.get('redis.password'),
