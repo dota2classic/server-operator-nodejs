@@ -124,7 +124,7 @@ export class MetricsService {
     await this.pushgateway.pushAdd({
       jobName: 'server-operator-nodejs',
       groupings: {
-        host: this.config.get('host'),
+        host: this.config.get('srcds.host'),
       },
     });
   }
