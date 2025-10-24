@@ -74,6 +74,7 @@ export class DockerService implements OnApplicationBootstrap {
       try {
         allocatedCpu = await this.allocateCpu().then((it) => it.toString());
       } catch (e) {
+        console.error(e);
         this.logger.error('No free cpu left! Should not happen', e);
         throw new Error('Out of CPUs!');
       }
