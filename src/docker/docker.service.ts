@@ -19,7 +19,7 @@ import { EventBus } from '@nestjs/cqrs';
 import { ServerStatusEvent } from '../gateway/events/gs/server-status.event';
 import { DotaPatch } from '../gateway/constants/patch';
 import { MatchmakingMode } from '../gateway/shared-types/matchmaking-mode';
-import os from 'os';
+import * as os from 'os';
 
 @Injectable()
 export class DockerService implements OnApplicationBootstrap {
@@ -74,7 +74,6 @@ export class DockerService implements OnApplicationBootstrap {
       try {
         allocatedCpu = await this.allocateCpu().then((it) => it.toString());
       } catch (e) {
-        console.error(e);
         this.logger.error('No free cpu left! Should not happen', e);
         throw new Error('Out of CPUs!');
       }
