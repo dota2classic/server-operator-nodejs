@@ -19,6 +19,7 @@ import { EventBus } from '@nestjs/cqrs';
 import { ServerStatusEvent } from '../gateway/events/gs/server-status.event';
 import { DotaPatch } from '../gateway/constants/patch';
 import { MatchmakingMode } from '../gateway/shared-types/matchmaking-mode';
+import os from 'os';
 
 @Injectable()
 export class DockerService implements OnApplicationBootstrap {
@@ -64,20 +65,27 @@ export class DockerService implements OnApplicationBootstrap {
     tickrate: number,
     matchId: number,
     gamePort: number,
+    cpuAffinity: boolean,
   ) {
     const tvPort = gamePort + 5;
 
-    // Initial setup
-    // clConfig.info.players.forEach((plr) => (plr['ignore'] = false));
-    // const matchBase64 = Buffer.from(JSON.stringify(clConfig)).toString(
-    //   'base64',
-    // );
-    const configFilename = await this.createTemporaryLaunchConfig(schema);
+    let allocatedCpu: string | undefined = undefined;
+    if (cpuAffinity) {
+      try {
+        allocatedCpu = await this.allocateCpu().then((it) => it.toString());
+      } catch (e) {
+        this.logger.error('No free cpu left! Should not happen');
+        throw new Error('Out of CPUs!');
+      }
+    }
+
+    await this.createTemporaryLaunchConfig(schema);
 
     const matchCfgName = `${matchId}.json`;
 
     this.logger.log('Starting SRCDS container', {
       matchId: matchId,
+      cpuAffinity: allocatedCpu || 'none',
     });
 
     const masterHost = this.config.get('srcds.masterHost');
@@ -99,13 +107,11 @@ export class DockerService implements OnApplicationBootstrap {
         AttachStdout: false,
         OpenStdin: false,
         StdinOnce: false,
-        // Volumes: {
-        //   "./logs": "./dota/logs"
-        // },
         Labels: {
           [DockerServerWrapper.SERVER_URL_LABEL]: `${this.config.get('srcds.host')}:${gamePort}`,
           [DockerServerWrapper.MATCH_ID_LABEL]: matchId.toString(),
           [DockerServerWrapper.LOBBY_TYPE_LABEL]: schema.lobbyType.toString(),
+          [DockerServerWrapper.CONTAINER_CPU_AFFINITY]: allocatedCpu,
         },
         ExposedPorts: {
           [`${gamePort}/tcp`]: {},
@@ -120,18 +126,12 @@ export class DockerService implements OnApplicationBootstrap {
         },
 
         HostConfig: {
-          CpusetCpus: '0',
-          // CpuQuota: this.config.get('srcds.cpuQuota'),
-          // Memory: 1024 * 1042 * this.config.get('srcds.memory'), // 512 m
+          CpusetCpus: allocatedCpu,
+
           AutoRemove: true,
           NetworkMode: runOnHostNetwork ? 'host' : network,
 
           PortBindings: {
-            // [`${27015}/tcp`]: [{ HostPort: `${exposePort}` }],
-            // [`${27015}/udp`]: [{ HostPort: `${exposePort}` }],
-            // [`${27020}/tcp`]: [{ HostPort: `${exposePort + 5}` }],
-            // [`${27020}/udp`]: [{ HostPort: `${exposePort + 5}` }],
-
             [`${gamePort}/tcp`]: [{ HostPort: `${gamePort}` }],
             [`${gamePort}/udp`]: [{ HostPort: `${gamePort}` }],
             [`${tvPort}/tcp`]: [{ HostPort: `${tvPort}` }],
@@ -369,5 +369,29 @@ export class DockerService implements OnApplicationBootstrap {
     console.log('Target filename: ', filename);
     await fs.promises.writeFile(filename, data, { flag: 'wx' });
     return filename;
+  }
+
+  private async getUsedCpus() {
+    const containers = await this.getRunningGameServers();
+    const used = new Set();
+
+    for (const c of containers) {
+      if (c.cpuAffinity !== undefined) {
+        used.add(parseInt(c.cpuAffinity, 10));
+      }
+    }
+
+    return used;
+  }
+
+  private async allocateCpu(): Promise<number> {
+    const cpuCount = os.cpus().length;
+    const used = await this.getUsedCpus();
+
+    for (let i = 0; i < cpuCount; i++) {
+      if (!used.has(i)) return i;
+    }
+
+    throw new Error('No free CPU cores left');
   }
 }

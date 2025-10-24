@@ -97,11 +97,11 @@ export class LaunchGameServerCommandHandler
 
     this.logger.log('MatchInfo for base64', schema);
 
-    const tickrate =
+    const isPriorityLobby =
       command.lobbyType == MatchmakingMode.UNRANKED ||
-      command.lobbyType === MatchmakingMode.LOBBY
-        ? 40
-        : 30;
+      command.lobbyType === MatchmakingMode.LOBBY;
+
+    const tickrate = isPriorityLobby ? 40 : 30;
 
     await this.docker.startGameServer(
       map,
@@ -113,6 +113,7 @@ export class LaunchGameServerCommandHandler
       // 30,
       matchId,
       freePort,
+      isPriorityLobby,
     );
 
     this.logger.log('Game container started');
