@@ -7,33 +7,6 @@ import configuration from './configuration';
 import { Logger } from '@nestjs/common';
 import { RmqOptions } from '@nestjs/microservices/interfaces/microservice-configuration.interface';
 
-// const a: CommandLineConfig = {
-//   url: '123',
-//   matchId: 123,
-//   info: {
-//     mode: 7,
-//     map: Dota_Map.DOTA,
-//     gameMode: Dota_GameMode.ALLPICK,
-//     roomId: 'roomid',
-//     players: [
-//       {
-//         playerId: { value: '1272156935' },
-//         team: DotaTeam.RADIANT,
-//         name: 'Player #1',
-//         partyId: 'party1',
-//       },
-//       {
-//         playerId: { value: '1272156930' },
-//         team: DotaTeam.RADIANT,
-//         name: 'Player #2',
-//         partyId: 'party2',
-//       },
-//     ],
-//     version: Dota2Version.Dota_684,
-//     averageMMR: 0,
-//   },
-// };
-
 async function bootstrap() {
   const config = new ConfigService(configuration());
 
