@@ -120,6 +120,7 @@ export class DockerService implements OnApplicationBootstrap {
         },
 
         HostConfig: {
+          CpusetCpus: '0',
           // CpuQuota: this.config.get('srcds.cpuQuota'),
           // Memory: 1024 * 1042 * this.config.get('srcds.memory'), // 512 m
           AutoRemove: true,
