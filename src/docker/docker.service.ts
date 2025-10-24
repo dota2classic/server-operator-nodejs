@@ -373,7 +373,7 @@ export class DockerService implements OnApplicationBootstrap {
 
   private async getUsedCpus(): Promise<Set<string>> {
     const containers = await this.getRunningGameServers();
-    const used = new Set();
+    const used = new Set<string>();
 
     for (const c of containers) {
       if (c.cpuAffinity !== undefined) {
