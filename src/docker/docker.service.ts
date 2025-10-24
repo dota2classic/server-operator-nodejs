@@ -74,7 +74,7 @@ export class DockerService implements OnApplicationBootstrap {
       try {
         allocatedCpu = await this.allocateCpu().then((it) => it.toString());
       } catch (e) {
-        this.logger.error('No free cpu left! Should not happen');
+        this.logger.error('No free cpu left! Should not happen', e);
         throw new Error('Out of CPUs!');
       }
     }
@@ -371,13 +371,13 @@ export class DockerService implements OnApplicationBootstrap {
     return filename;
   }
 
-  private async getUsedCpus() {
+  private async getUsedCpus(): Promise<Set<string>> {
     const containers = await this.getRunningGameServers();
     const used = new Set();
 
     for (const c of containers) {
       if (c.cpuAffinity !== undefined) {
-        used.add(parseInt(c.cpuAffinity, 10));
+        used.add(c.cpuAffinity);
       }
     }
 
@@ -386,10 +386,16 @@ export class DockerService implements OnApplicationBootstrap {
 
   private async allocateCpu(): Promise<number> {
     const cpuCount = os.cpus().length;
+    this.logger.log(`Total CPU count: ${cpuCount}`);
+
     const used = await this.getUsedCpus();
 
+    this.logger.log('Used cpus: ', Array.from(used));
+
     for (let i = 0; i < cpuCount; i++) {
-      if (!used.has(i)) return i;
+      if (!used.has(i.toString())) {
+        return i;
+      }
     }
 
     throw new Error('No free CPU cores left');

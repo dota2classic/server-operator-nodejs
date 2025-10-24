@@ -39,13 +39,8 @@ export class EventsController implements OnApplicationBootstrap {
     );
   }
 
-  // @RabbitSubscribe({
-  //   exchange: 'app.events',
-  //   routingKey: LaunchGameServerCommand.name,
-  //   queue: `operator-queue.${LaunchGameServerCommand.name}`,
-  // })
   private launchGameServer = async (data: LaunchGameServerCommand) => {
-    this.logger.log('Launch?');
+    this.logger.log('Trying to launch game server');
     const result = await this.cbus.execute<
       LaunchGameServerCommand,
       LaunchGameServerNewResponse
