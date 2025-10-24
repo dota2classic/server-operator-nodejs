@@ -142,7 +142,6 @@ export class DockerService implements OnApplicationBootstrap {
             `${this.config.get('srcds.logVolumeName')}:/root/dota/logs`,
             `${this.config.get('srcds.replayVolumeName')}:/root/dota/replays`,
             `${this.config.get('srcds.dumpVolumeName')}:/tmp/dumps`,
-            // `${configFilename}:/root/dota/cfg/match_info.json`,
           ],
         },
         Env: [

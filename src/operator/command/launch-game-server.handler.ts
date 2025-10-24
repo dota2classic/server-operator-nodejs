@@ -113,7 +113,7 @@ export class LaunchGameServerCommandHandler
       // 30,
       matchId,
       freePort,
-      isPriorityLobby,
+      true,
     );
 
     this.logger.log('Game container started');
