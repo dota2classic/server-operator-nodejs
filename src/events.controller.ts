@@ -57,7 +57,7 @@ export class EventsController implements OnApplicationBootstrap {
     });
 
     await new Promise((resolve) => setTimeout(resolve, 5000));
-    this.ebus.publish(new SrcdsServerStartedEvent(result.server, data));
+    this.ebus.publish(new SrcdsServerStartedEvent(data.matchId, result.server));
     this.logger.log('GameServer started', {
       match_id: data.matchId,
       server_url: result.server,
